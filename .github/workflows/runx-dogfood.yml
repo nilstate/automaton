@@ -15,11 +15,11 @@ jobs:
       - name: Check out automaton
         uses: actions/checkout@v4
 
-      - name: Check out runx workspace
+      - name: Check out runx OSS
         uses: actions/checkout@v4
         with:
-          repository: auscaster/runx-workspace
-          path: runx
+          repository: auscaster/runx
+          path: runx/oss
           token: ${{ secrets.RUNX_WORKSPACE_PAT }}
 
       - name: Set up Node.js
