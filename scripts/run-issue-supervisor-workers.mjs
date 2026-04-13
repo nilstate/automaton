@@ -28,16 +28,31 @@ async function main(argv = process.argv.slice(2)) {
   }
 
   const workers = [];
+  let hasFailure = false;
   for (let index = 0; index < workerRequests.length; index += 1) {
     const workerRequest = workerRequests[index];
-    workers.push(await runWorker({ options, workerRequest, index }));
+    try {
+      workers.push(await runWorker({ options, workerRequest, index }));
+    } catch (error) {
+      hasFailure = true;
+      workers.push({
+        worker: firstString(workerRequest.worker) ?? "issue-to-pr",
+        target_repo: firstString(asRecord(workerRequest.issue_to_pr_request)?.target_repo) ?? options.defaultRepo,
+        status: "failure",
+        error: serializeError(error),
+      });
+    }
   }
 
   await writeOutput(options.output, {
-    status: "completed",
+    status: hasFailure ? "failure" : "completed",
     worker_count: workers.length,
     workers,
   });
+
+  if (hasFailure) {
+    process.exitCode = 1;
+  }
 }
 
 async function runWorker({ options, workerRequest, index }) {
@@ -51,9 +66,12 @@ async function runWorker({ options, workerRequest, index }) {
   }
 
   const targetRepo = firstString(issueToPrRequest.target_repo) ?? options.defaultRepo;
+  const workerKey = `worker-${workerNumber}`;
   const branchName = firstString(issueToPrRequest.branch)
     ?? `runx/issue-${options.issueNumber}-${slug(`${targetRepo}-${workerNumber}`)}`;
-  const workerKey = `worker-${workerNumber}`;
+  const taskId = normalizeTaskId(
+    firstString(issueToPrRequest.task_id) ?? `issue-${options.issueNumber}-${workerKey}`,
+  );
   const artifactDir = path.resolve(options.artifactRoot, workerKey);
   const workDir = path.resolve(options.workRoot, workerKey);
 
@@ -92,7 +110,7 @@ async function runWorker({ options, workerRequest, index }) {
       "--fixture",
       workDir,
       "--task_id",
-      firstString(issueToPrRequest.task_id) ?? `issue-${options.issueNumber}-${workerKey}`,
+      taskId,
       "--issue_title",
       firstString(issueToPrRequest.issue_title) ?? options.issueTitle,
       "--issue_body",
@@ -141,7 +159,7 @@ async function runWorker({ options, workerRequest, index }) {
         issueNumber: options.issueNumber,
         issueUrl: options.issueUrl,
         targetRepo,
-        taskId: firstString(issueToPrRequest.task_id) ?? `issue-${options.issueNumber}-${workerKey}`,
+        taskId,
         workerNumber,
         validationCommands,
       }),
@@ -184,6 +202,8 @@ async function runWorker({ options, workerRequest, index }) {
       worker: workerRequest.worker,
       target_repo: targetRepo,
       branch: branchName,
+      task_id: taskId,
+      status: "completed",
       validation_commands: validationCommands,
       publish,
     };
@@ -502,8 +522,26 @@ function firstString(value) {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
 }
 
+export function normalizeTaskId(value) {
+  return slug(value) || "issue-task";
+}
+
 function slug(value) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48);
+}
+
+function serializeError(error) {
+  if (!error || typeof error !== "object") {
+    return {
+      message: String(error),
+    };
+  }
+
+  return {
+    name: firstString(error.name) ?? "Error",
+    message: firstString(error.message) ?? "Unknown error",
+    stack: firstString(error.stack),
+  };
 }
 
 function safeRun(command, args, options = {}) {
