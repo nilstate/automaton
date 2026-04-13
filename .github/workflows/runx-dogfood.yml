@@ -20,6 +20,7 @@ jobs:
         with:
           repository: auscaster/runx-workspace
           path: runx
+          token: ${{ secrets.RUNX_WORKSPACE_PAT }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -52,4 +53,3 @@ jobs:
         with:
           name: automaton-dogfood
           path: ${{ github.workspace }}/automaton-artifacts
-
