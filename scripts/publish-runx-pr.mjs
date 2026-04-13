@@ -3,10 +3,40 @@ import { execFileSync } from "node:child_process";
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const base = options.base ?? defaultBranch(options.repo);
+  const existingPr = findExistingPr(options.repo, options.branch);
 
   if (!hasWorkingTreeChanges()) {
+    if (options.closeExistingIfNoop && existingPr) {
+      closePr(
+        options.repo,
+        existingPr.number,
+        "Closing stale automaton PR because the latest run produced no repo changes.",
+      );
+      process.stdout.write(
+        `${JSON.stringify(
+          {
+            status: "closed_noop",
+            reason: "working tree clean",
+            pr_number: existingPr.number,
+            pr_url: existingPr.url,
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      return;
+    }
     process.stdout.write(
-      `${JSON.stringify({ status: "noop", reason: "working tree clean" }, null, 2)}\n`,
+      `${JSON.stringify(
+        {
+          status: "noop",
+          reason: "working tree clean",
+          pr_number: existingPr?.number ?? null,
+          pr_url: existingPr?.url ?? null,
+        },
+        null,
+        2,
+      )}\n`,
     );
     return;
   }
@@ -15,8 +45,37 @@ async function main() {
   run("git", ["add", "-A"]);
 
   if (!hasStagedChanges()) {
+    if (options.closeExistingIfNoop && existingPr) {
+      closePr(
+        options.repo,
+        existingPr.number,
+        "Closing stale automaton PR because the latest run produced no staged changes.",
+      );
+      process.stdout.write(
+        `${JSON.stringify(
+          {
+            status: "closed_noop",
+            reason: "no staged changes",
+            pr_number: existingPr.number,
+            pr_url: existingPr.url,
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      return;
+    }
     process.stdout.write(
-      `${JSON.stringify({ status: "noop", reason: "no staged changes" }, null, 2)}\n`,
+      `${JSON.stringify(
+        {
+          status: "noop",
+          reason: "no staged changes",
+          pr_number: existingPr?.number ?? null,
+          pr_url: existingPr?.url ?? null,
+        },
+        null,
+        2,
+      )}\n`,
     );
     return;
   }
@@ -54,7 +113,7 @@ async function main() {
       "comment",
       options.issueNumber,
       "--repo",
-      options.repo,
+      options.issueRepo ?? options.repo,
       "--body",
       `Opened draft PR for this run: ${pr.url}`,
     ]);
@@ -105,6 +164,14 @@ function parseArgs(argv) {
     }
     if (token === "--issue-number") {
       options.issueNumber = requireValue(argv, ++index, token);
+      continue;
+    }
+    if (token === "--issue-repo") {
+      options.issueRepo = requireValue(argv, ++index, token);
+      continue;
+    }
+    if (token === "--close-existing-if-noop") {
+      options.closeExistingIfNoop = true;
       continue;
     }
     throw new Error(`Unknown argument: ${token}`);
@@ -170,6 +237,18 @@ function findExistingPr(repo, branch) {
     ]),
   );
   return listing[0];
+}
+
+function closePr(repo, number, comment) {
+  run("gh", [
+    "pr",
+    "close",
+    String(number),
+    "--repo",
+    repo,
+    "--comment",
+    comment,
+  ]);
 }
 
 await main();
