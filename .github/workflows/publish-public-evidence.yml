@@ -60,6 +60,11 @@ jobs:
           RUNX_PUBLIC_EVIDENCE_STATUS: ${{ github.event_name == 'workflow_dispatch' && inputs.status || (github.event.workflow_run.conclusion == 'timed_out' && 'failure') || github.event.workflow_run.conclusion }}
           RUNX_PUBLIC_EVIDENCE_TITLE: ${{ github.event_name == 'workflow_dispatch' && format('{0} · {1}', inputs.workflow_name, github.repository) || format('{0} · {1}', github.event.workflow_run.name, github.repository) }}
           RUNX_PUBLIC_EVIDENCE_SUMMARY: ${{ github.event_name == 'workflow_dispatch' && inputs.summary || format('workflow completed with status {0}', github.event_name == 'workflow_dispatch' && inputs.status || github.event.workflow_run.conclusion) }}
+          RUNX_PUBLIC_EVIDENCE_REPO: ${{ github.repository }}
+          RUNX_PUBLIC_EVIDENCE_WORKFLOW: ${{ github.event_name == 'workflow_dispatch' && inputs.workflow_name || github.event.workflow_run.name }}
+          RUNX_PUBLIC_EVIDENCE_BRANCH: ${{ github.event_name == 'workflow_dispatch' && github.ref_name || github.event.workflow_run.head_branch }}
+          RUNX_PUBLIC_EVIDENCE_COMMIT: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.workflow_run.head_sha }}
+          RUNX_PUBLIC_EVIDENCE_URL: ${{ github.event_name == 'workflow_dispatch' && format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, inputs.run_id || github.run_id) || github.event.workflow_run.html_url }}
           RUNX_PUBLIC_EVIDENCE_SOURCE: github-actions
           RUNX_PUBLIC_EVIDENCE_RUN_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.run_id || github.event.workflow_run.id }}
         run: |
