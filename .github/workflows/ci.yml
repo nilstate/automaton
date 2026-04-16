@@ -29,8 +29,8 @@ jobs:
 
       - name: Build shared runx tokens
         run: |
-          npm --prefix runx/cloud/packages/tokens install
-          npm --prefix runx/cloud/packages/tokens run build
+          npm --prefix ../runx/cloud/packages/tokens install
+          npm --prefix ../runx/cloud/packages/tokens run build
 
       - name: Run repo checks
         run: npm run check
