@@ -53,7 +53,7 @@ jobs:
   skill-contribution:
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ secrets.UPSTREAM_CONTRIBUTION_TOKEN || secrets.RUNX_REPOSITORY_PAT || secrets.RUNX_WORKSPACE_PAT || github.token }}
+      GH_TOKEN: ${{ secrets.UPSTREAM_CONTRIBUTION_TOKEN || secrets.RUNX_REPOSITORY_PAT || github.token }}
       TARGET_REPO: ${{ inputs.target_repo }}
       TARGET_REF: ${{ inputs.target_ref }}
       CONTRIBUTION_WORKFLOW: ${{ inputs.workflow }}
@@ -71,7 +71,7 @@ jobs:
         with:
           repository: ${{ inputs.target_repo }}
           ref: ${{ inputs.target_ref }}
-          token: ${{ secrets.UPSTREAM_CONTRIBUTION_TOKEN || secrets.RUNX_REPOSITORY_PAT || secrets.RUNX_WORKSPACE_PAT || github.token }}
+          token: ${{ secrets.UPSTREAM_CONTRIBUTION_TOKEN || secrets.RUNX_REPOSITORY_PAT || github.token }}
           path: .target/repo
           fetch-depth: 0
 
@@ -82,8 +82,8 @@ jobs:
 
       - name: Configure target git author
         run: |
-          git -C .target/repo config user.name "github-actions[bot]"
-          git -C .target/repo config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C .target/repo config user.name "auscaster"
+          git -C .target/repo config user.email "100876+auscaster@users.noreply.github.com"
 
       - name: Prepare portable skill contribution
         run: |

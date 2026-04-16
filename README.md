@@ -72,8 +72,8 @@ Two supporting lanes stay valuable even when the external caller is offline:
 - `RUNX_CALLER_MODEL` (optional): pinned model override for the hosted bridge
 - `RUNX_REF` (repo variable): optional `runx` branch or tag for hosted
   checkouts; defaults to `main`
-- `RUNX_WORKSPACE_PAT` (optional): broader GitHub token for cross-repo worker
-  checkouts and draft PR publication. The repo-scoped `github.token` is enough
+- `RUNX_REPOSITORY_PAT` (optional): GitHub token for private `runx` checkout
+  and other cross-repo automation. The repo-scoped `github.token` is enough
   for same-repo workers; fanout into other repos needs broader access.
 
 Without `OPENAI_API_KEY`, the mutation-capable lanes stay intentionally idle and

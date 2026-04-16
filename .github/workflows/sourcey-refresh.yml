@@ -51,7 +51,7 @@ jobs:
           repository: ${{ vars.RUNX_REPOSITORY || 'nilstate/runx' }}
           ref: ${{ vars.RUNX_REF || 'main' }}
           path: .runx/runx
-          token: ${{ secrets.RUNX_REPOSITORY_PAT != '' && secrets.RUNX_REPOSITORY_PAT || secrets.RUNX_WORKSPACE_PAT != '' && secrets.RUNX_WORKSPACE_PAT || github.token }}
+          token: ${{ secrets.RUNX_REPOSITORY_PAT || github.token }}
 
       - name: Set up Node.js
         if: ${{ steps.preflight.outputs.enabled == 'true' }}
@@ -91,7 +91,7 @@ jobs:
             skill "$GITHUB_WORKSPACE/.runx/runx/skills/sourcey" \
             --project "$GITHUB_WORKSPACE" \
             --brand_name "automaton" \
-            --homepage_url "https://github.com/auscaster/automaton" \
+            --homepage_url "https://github.com/nilstate/automaton" \
             --docs_inputs '{"mode":"config","config":"docs/sourcey.config.ts"}' \
             --output_dir "$GITHUB_WORKSPACE/.sourcey/runx-docs" \
             --sourcey_bin "$GITHUB_WORKSPACE/scripts/sourcey-wrapper.sh"

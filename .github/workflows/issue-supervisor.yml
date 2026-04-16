@@ -25,7 +25,7 @@ jobs:
     if: ${{ !startsWith(github.event.issue.title, '[skill]') }}
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ secrets.RUNX_REPOSITORY_PAT != '' && secrets.RUNX_REPOSITORY_PAT || secrets.RUNX_WORKSPACE_PAT != '' && secrets.RUNX_WORKSPACE_PAT || github.token }}
+      GH_TOKEN: ${{ secrets.RUNX_REPOSITORY_PAT || github.token }}
       RUNX_CALLER_MODEL: ${{ vars.RUNX_CALLER_MODEL || 'gpt-5.4' }}
       RUNX_CALLER_REASONING_EFFORT: ${{ vars.RUNX_CALLER_REASONING_EFFORT || 'xhigh' }}
       RUNX_CALLER_MAX_ATTEMPTS: ${{ vars.RUNX_CALLER_MAX_ATTEMPTS || '3' }}
@@ -55,7 +55,7 @@ jobs:
           repository: ${{ vars.RUNX_REPOSITORY || 'nilstate/runx' }}
           ref: ${{ vars.RUNX_REF || 'main' }}
           path: .runx/runx
-          token: ${{ secrets.RUNX_REPOSITORY_PAT != '' && secrets.RUNX_REPOSITORY_PAT || secrets.RUNX_WORKSPACE_PAT != '' && secrets.RUNX_WORKSPACE_PAT || github.token }}
+          token: ${{ secrets.RUNX_REPOSITORY_PAT || github.token }}
 
       - name: Set up Node.js
         if: ${{ steps.preflight.outputs.enabled == 'true' }}

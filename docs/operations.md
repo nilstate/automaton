@@ -10,11 +10,13 @@ description: Secrets, approvals, artifacts, and what still needs hardening.
 - `OPENAI_API_KEY`: external caller for `runx` `agent-step` requests
 - `RUNX_CALLER_MODEL` (optional repo variable): pinned model snapshot for the
   hosted bridge
-- `RUNX_WORKSPACE_PAT` (optional secret): broader GitHub token for cross-repo
-  worker checkouts and draft PR publication
+- `RUNX_REPOSITORY_PAT` (optional secret): GitHub token for private `runx`
+  checkout and other cross-repo automation that cannot rely on the default
+  workflow token
 - `UPSTREAM_CONTRIBUTION_TOKEN` (optional secret): preferred token for
   cross-repo `skill-contribution` PRs when the default workflow token cannot
-  write to the target repo
+  write to the target repo. This should be an `auscaster` token when outbound
+  adoption PRs should be authored and opened as `@auscaster`.
 
 ## Approval policy
 

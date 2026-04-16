@@ -41,7 +41,7 @@ jobs:
   skill-contribution-watch:
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ secrets.UPSTREAM_CONTRIBUTION_TOKEN || secrets.RUNX_REPOSITORY_PAT || secrets.RUNX_WORKSPACE_PAT || github.token }}
+      GH_TOKEN: ${{ secrets.UPSTREAM_CONTRIBUTION_TOKEN || secrets.RUNX_REPOSITORY_PAT || github.token }}
       TARGET_REPO: ${{ github.event_name == 'workflow_dispatch' && inputs.target_repo || 'nilstate/icey-cli' }}
       PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || '2' }}
       CANDIDATE_PATH: ${{ github.event_name == 'workflow_dispatch' && inputs.candidate_path || 'SKILL.md' }}

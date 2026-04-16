@@ -55,7 +55,7 @@ jobs:
           repository: ${{ vars.RUNX_REPOSITORY || 'nilstate/runx' }}
           ref: ${{ vars.RUNX_REF || 'main' }}
           path: .runx/runx
-          token: ${{ secrets.RUNX_REPOSITORY_PAT != '' && secrets.RUNX_REPOSITORY_PAT || secrets.RUNX_WORKSPACE_PAT != '' && secrets.RUNX_WORKSPACE_PAT || github.token }}
+          token: ${{ secrets.RUNX_REPOSITORY_PAT || github.token }}
 
       - name: Set up Node.js
         if: ${{ steps.preflight.outputs.enabled == 'true' }}
