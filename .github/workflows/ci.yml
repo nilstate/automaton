@@ -21,6 +21,7 @@ jobs:
         with:
           repository: nilstate/runx-platform
           path: runx
+          token: ${{ secrets.AUTOMATON_GH_TOKEN }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
