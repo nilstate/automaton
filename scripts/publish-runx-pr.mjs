@@ -215,7 +215,7 @@ export function ensureRemoteLease(branch, runner = run) {
 }
 
 export function buildPushArgs(branch, remoteLease) {
-  const args = ["git", "push", "-u", "origin", branch];
+  const args = ["push", "-u", "origin", branch];
   if (remoteLease) {
     args.push(`--force-with-lease=refs/heads/${branch}:${remoteLease}`);
   } else {

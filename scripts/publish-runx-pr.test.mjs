@@ -51,7 +51,6 @@ test("ensureRemoteLease returns null when the remote branch does not exist", () 
 
 test("buildPushArgs uses an explicit lease when a remote tip is known", () => {
   assert.deepEqual(buildPushArgs("runx/sourcey-refresh", "abc123"), [
-    "git",
     "push",
     "-u",
     "origin",
@@ -62,7 +61,6 @@ test("buildPushArgs uses an explicit lease when a remote tip is known", () => {
 
 test("buildPushArgs falls back to plain force-with-lease for new branches", () => {
   assert.deepEqual(buildPushArgs("runx/sourcey-refresh", null), [
-    "git",
     "push",
     "-u",
     "origin",
