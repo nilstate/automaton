@@ -57,15 +57,6 @@ jobs:
           path: .runx/runx
           token: ${{ secrets.RUNX_REPOSITORY_PAT != '' && secrets.RUNX_REPOSITORY_PAT || secrets.RUNX_WORKSPACE_PAT != '' && secrets.RUNX_WORKSPACE_PAT || github.token }}
 
-      - name: Materialize runx OSS submodule
-        if: ${{ steps.preflight.outputs.enabled == 'true' }}
-        env:
-          RUNX_REPOSITORY_TOKEN: ${{ secrets.RUNX_REPOSITORY_PAT != '' && secrets.RUNX_REPOSITORY_PAT || secrets.RUNX_WORKSPACE_PAT != '' && secrets.RUNX_WORKSPACE_PAT || github.token }}
-        run: |
-          git -C .runx/runx config -f .gitmodules submodule.oss.url "https://x-access-token:${RUNX_REPOSITORY_TOKEN}@github.com/auscaster/runx.git"
-          git -C .runx/runx submodule sync -- oss
-          git -C .runx/runx submodule update --init --depth 1 oss
-
       - name: Set up Node.js
         if: ${{ steps.preflight.outputs.enabled == 'true' }}
         uses: actions/setup-node@v6
@@ -79,8 +70,8 @@ jobs:
       - name: Install and build runx
         if: ${{ steps.preflight.outputs.enabled == 'true' }}
         run: |
-          pnpm --dir .runx/runx/oss install --no-frozen-lockfile
-          pnpm --dir .runx/runx/oss build
+          pnpm --dir .runx/runx install --no-frozen-lockfile
+          pnpm --dir .runx/runx build
 
       - name: Configure git author
         if: ${{ steps.preflight.outputs.enabled == 'true' }}
