@@ -51,8 +51,8 @@ jobs:
 
       - name: Build shared runx tokens
         run: |
-          npm --prefix ../runx/packages/tokens install
-          npm --prefix ../runx/packages/tokens run build
+          npm --prefix runx/packages/tokens install
+          npm --prefix runx/packages/tokens run build
 
       - name: Install site dependencies
         run: npm --prefix site install

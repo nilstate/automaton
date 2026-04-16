@@ -30,8 +30,8 @@ jobs:
 
       - name: Build shared runx tokens
         run: |
-          npm --prefix ../runx/packages/tokens install
-          npm --prefix ../runx/packages/tokens run build
+          npm --prefix runx/packages/tokens install
+          npm --prefix runx/packages/tokens run build
 
       - name: Run repo checks
         run: npm run check

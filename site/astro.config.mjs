@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "astro/config";
 
 const runxPackageCandidates = [
+  fileURLToPath(new URL("../runx/packages", import.meta.url)),
   fileURLToPath(new URL("../../runx/packages", import.meta.url)),
   fileURLToPath(new URL("../../runx/cloud/packages", import.meta.url)),
 ];
