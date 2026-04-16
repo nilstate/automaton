@@ -28,3 +28,6 @@ line.
 - public narrative must remain subordinate to receipts and committed state
 - changes that alter workflow publication rules deserve extra care
 
+## Recent Outcomes
+
+- 2026-04-16 · `sourcey-refresh` · `success` · lane finished with success
