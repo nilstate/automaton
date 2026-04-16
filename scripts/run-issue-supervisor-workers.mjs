@@ -4,20 +4,31 @@ import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  collectWorkerValidationIssues,
+  loadVerificationProfileCatalogSync,
+  resolveVerificationPlan,
+} from "./automaton-v1-contracts.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "..");
 
 async function main(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
   const decision = JSON.parse(await readFile(path.resolve(options.decision), "utf8"));
-  const workerRequests = asArray(decision?.supervisor_decision?.worker_requests)
+  const rawWorkerRequests = asArray(decision?.supervisor_decision?.worker_requests)
     .map(asRecord)
     .filter(Boolean);
+  const verificationCatalog = loadVerificationProfileCatalogSync(repoRoot);
+  const workerValidation = collectWorkerValidationIssues(rawWorkerRequests, {
+    defaultRepo: options.defaultRepo,
+    catalog: verificationCatalog,
+  });
 
   await mkdir(path.resolve(options.artifactRoot), { recursive: true });
   await mkdir(path.resolve(options.workRoot), { recursive: true });
 
-  if (workerRequests.length === 0) {
+  if (rawWorkerRequests.length === 0) {
     await writeOutput(options.output, {
       status: "noop",
       reason: "no worker requests",
@@ -27,12 +38,24 @@ async function main(argv = process.argv.slice(2)) {
     return;
   }
 
+  if (workerValidation.issues.length > 0) {
+    await writeOutput(options.output, {
+      status: "blocked",
+      reason: "worker_requests_failed_prerelease_v1_policy",
+      worker_count: 0,
+      workers: [],
+      errors: workerValidation.issues,
+    });
+    process.exitCode = 1;
+    return;
+  }
+
   const workers = [];
   let hasFailure = false;
-  for (let index = 0; index < workerRequests.length; index += 1) {
-    const workerRequest = workerRequests[index];
+  for (let index = 0; index < workerValidation.accepted.length; index += 1) {
+    const workerRequest = workerValidation.accepted[index];
     try {
-      workers.push(await runWorker({ options, workerRequest, index }));
+      workers.push(await runWorker({ options, workerRequest, index, verificationCatalog }));
     } catch (error) {
       hasFailure = true;
       workers.push({
@@ -55,7 +78,7 @@ async function main(argv = process.argv.slice(2)) {
   }
 }
 
-async function runWorker({ options, workerRequest, index }) {
+async function runWorker({ options, workerRequest, index, verificationCatalog }) {
   const workerNumber = String(index + 1).padStart(2, "0");
   const issueToPrRequest = asRecord(workerRequest.issue_to_pr_request);
   if (!issueToPrRequest) {
@@ -66,6 +89,11 @@ async function runWorker({ options, workerRequest, index }) {
   }
 
   const targetRepo = firstString(issueToPrRequest.target_repo) ?? options.defaultRepo;
+  const verificationPlan = resolveVerificationPlan({
+    catalog: verificationCatalog,
+    targetRepo,
+    issueToPrRequest,
+  });
   const workerKey = `worker-${workerNumber}`;
   const branchName = firstString(issueToPrRequest.branch)
     ?? `runx/issue-${options.issueNumber}-${slug(`${targetRepo}-${workerNumber}`)}`;
@@ -169,11 +197,7 @@ async function runWorker({ options, workerRequest, index }) {
       cwd: workDir,
     });
 
-    const validationCommands = resolveValidationCommands({
-      defaultRepo: options.defaultRepo,
-      targetRepo,
-      issueToPrRequest,
-    });
+    const validationCommands = verificationPlan.commands;
     const validationLog = [];
     for (const command of validationCommands) {
       run("bash", ["-lc", command], { cwd: workDir });
@@ -181,7 +205,11 @@ async function runWorker({ options, workerRequest, index }) {
     }
     await writeFile(
       path.join(artifactDir, "validation.json"),
-      `${JSON.stringify({ commands: validationLog }, null, 2)}\n`,
+      `${JSON.stringify({
+        verification_profile: verificationPlan.profile_id,
+        compatibility_mode: verificationPlan.compatibility_mode,
+        commands: validationLog,
+      }, null, 2)}\n`,
     );
 
     const prBodyPath = path.join(artifactDir, "pr-body.md");
@@ -194,6 +222,7 @@ async function runWorker({ options, workerRequest, index }) {
         taskId,
         workerNumber,
         validationCommands,
+        verificationProfile: verificationPlan.profile_id,
       }),
     );
 
@@ -213,7 +242,6 @@ async function runWorker({ options, workerRequest, index }) {
       prBodyPath,
       "--issue-number",
       options.issueNumber,
-      "--close-existing-if-noop",
     ], { cwd: workDir });
     await writeFile(path.join(artifactDir, "publish.json"), `${publishJson}\n`);
     const publish = JSON.parse(publishJson);
@@ -236,6 +264,7 @@ async function runWorker({ options, workerRequest, index }) {
       branch: branchName,
       task_id: taskId,
       status: "completed",
+      verification_profile: verificationPlan.profile_id,
       validation_commands: validationCommands,
       publish,
     };
@@ -260,20 +289,6 @@ async function prepareWorkspace({ targetRepo, defaultRepo, workDir }) {
   return async () => {
     await rm(workDir, { recursive: true, force: true });
   };
-}
-
-function resolveValidationCommands({ defaultRepo, targetRepo, issueToPrRequest }) {
-  if (Array.isArray(issueToPrRequest.validation_commands)) {
-    return issueToPrRequest.validation_commands.filter((value) => typeof value === "string" && value.trim().length > 0);
-  }
-  const single = firstString(issueToPrRequest.validation_command);
-  if (single) {
-    return [single];
-  }
-  if (targetRepo === defaultRepo && existsSync(path.join(repoRoot, "package.json"))) {
-    return ["npm run docs:ci"];
-  }
-  return [];
 }
 
 function buildRepoSnapshot(workDir, targetRepo) {
@@ -447,7 +462,15 @@ function buildRepoContextSummary(snapshot) {
   return parts.join(" ; ");
 }
 
-function buildPrBody({ issueNumber, issueUrl, targetRepo, taskId, workerNumber, validationCommands }) {
+function buildPrBody({
+  issueNumber,
+  issueUrl,
+  targetRepo,
+  taskId,
+  workerNumber,
+  validationCommands,
+  verificationProfile,
+}) {
   const validationSection = validationCommands.length > 0
     ? validationCommands.map((command) => `- \`${command}\``).join("\n")
     : "- no repo-specific validation command was declared";
@@ -464,6 +487,7 @@ This draft PR was opened by the \`automaton\` issue supervisor lane.
 
 ## Validation
 
+- verification profile: \`${verificationProfile}\`
 ${validationSection}
 - scafld review completed before PR publication
 - receipts uploaded with this workflow run

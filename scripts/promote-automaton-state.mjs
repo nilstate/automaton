@@ -46,6 +46,8 @@ export function buildPromotionDrafts({ lane, contextBundle, runResult, now = new
     status: runResult?.status ?? "unknown",
     receipt_id: receiptId || null,
     summary: signal.summary,
+    feed_channel: feedChannelForLane(lane, runResult?.status ?? "unknown"),
+    main_feed_eligible: isMainFeedEligible(lane, runResult?.status ?? "unknown"),
     subject: contextBundle?.subject ?? {},
     signal,
   };
@@ -117,6 +119,8 @@ function buildReflectionDraft({ date, lane, contextBundle, packet }) {
     "visibility: public",
     `lane: ${lane}`,
     `status: ${packet.status}`,
+    `feed_channel: ${packet.feed_channel}`,
+    `main_feed_eligible: ${String(packet.main_feed_eligible)}`,
   ];
 
   if (packet.receipt_id) {
@@ -173,6 +177,9 @@ function buildHistoryDraft({ date, lane, contextBundle, packet }) {
     `date: ${date}`,
     "visibility: public",
     `lane: ${lane}`,
+    `status: ${packet.status}`,
+    `feed_channel: ${packet.feed_channel}`,
+    `main_feed_eligible: ${String(packet.main_feed_eligible)}`,
   ];
   if (subject.kind) {
     lines.push(`subject_kind: ${subject.kind}`);
@@ -283,6 +290,26 @@ function humanizeTitle(value) {
     .filter(Boolean)
     .map((part) => part[0].toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+function feedChannelForLane(lane, status) {
+  return isMainFeedEligible(lane, status) ? "main" : "ops";
+}
+
+function isMainFeedEligible(lane, status) {
+  const normalizedLane = String(lane ?? "").trim();
+  const normalizedStatus = String(status ?? "").trim().toLowerCase();
+  if (!["success", "completed", "merged", "published"].includes(normalizedStatus)) {
+    return false;
+  }
+  return [
+    "pr-triage",
+    "issue-supervisor",
+    "skill-contribution",
+    "skill-contribution-watch",
+    "market-brief",
+    "trust-report",
+  ].includes(normalizedLane);
 }
 
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {

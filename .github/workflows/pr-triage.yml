@@ -89,8 +89,15 @@ jobs:
 
       - name: Build PR snapshot
         if: ${{ steps.preflight.outputs.enabled == 'true' }}
+        id: target_scope
         run: |
           TARGET_REPO="${{ github.event.inputs.target_repo || github.repository }}"
+          if ! printf '%s' "$TARGET_REPO" | grep -Eq '^nilstate/'; then
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+            echo "Target repo '$TARGET_REPO' is outside prerelease v1 scope; skipping pr-triage." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "allowed=true" >> "$GITHUB_OUTPUT"
           mkdir -p .artifacts/pr-triage
           node scripts/build-pr-snapshot.mjs \
             --repo "$TARGET_REPO" \
@@ -98,7 +105,7 @@ jobs:
             > .artifacts/pr-triage/pr-snapshot.json
 
       - name: Run github-triage on PR snapshot
-        if: ${{ steps.preflight.outputs.enabled == 'true' }}
+        if: ${{ steps.preflight.outputs.enabled == 'true' && steps.target_scope.outputs.allowed == 'true' }}
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
@@ -142,18 +149,17 @@ jobs:
             --title "[runx] update pr-triage operator memory" \
             --commit-message "docs(memory): update pr-triage operator memory" \
             --body-file "$GITHUB_WORKSPACE/.artifacts/pr-triage/operator-memory-pr-body.md" \
-            --close-existing-if-noop \
             > "$GITHUB_WORKSPACE/.artifacts/pr-triage/operator-memory-publish.json"
 
       - name: Materialize PR comment
-        if: ${{ steps.preflight.outputs.enabled == 'true' }}
+        if: ${{ steps.preflight.outputs.enabled == 'true' && steps.target_scope.outputs.allowed == 'true' }}
         run: |
           node scripts/write-triage-comment.mjs \
             --input ".artifacts/pr-triage/result.json" \
             --output ".artifacts/pr-triage/comment.md"
 
       - name: Post PR comment
-        if: ${{ steps.preflight.outputs.enabled == 'true' }}
+        if: ${{ steps.preflight.outputs.enabled == 'true' && steps.target_scope.outputs.allowed == 'true' }}
         run: |
           TARGET_REPO="${{ github.event.inputs.target_repo || github.repository }}"
           node scripts/post-pr-triage-comment.mjs \
@@ -163,7 +169,7 @@ jobs:
             --sha "$(jq -r '.head_sha' .artifacts/pr-triage/pr-snapshot.json)"
 
       - name: Upload artifacts
-        if: ${{ always() && steps.preflight.outputs.enabled == 'true' }}
+        if: ${{ always() && steps.preflight.outputs.enabled == 'true' && steps.target_scope.outputs.allowed == 'true' }}
         uses: actions/upload-artifact@v7
         with:
           name: pr-triage-${{ github.event.pull_request.number || github.event.inputs.pr_number }}

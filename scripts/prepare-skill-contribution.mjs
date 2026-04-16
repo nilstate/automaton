@@ -516,6 +516,8 @@ function buildFeedEvent(context, opportunityId, options, generatedAt) {
     status: "success",
     timestamp: generatedAt,
     metadata: {
+      feed_channel: "main",
+      main_feed_eligible: true,
       state: "contribution_ready",
       opportunity_id: opportunityId,
       target_repo: context.repo,

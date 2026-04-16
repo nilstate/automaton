@@ -38,6 +38,12 @@ export async function runAutomatonCycle(options = {}) {
         maxIssues: Number(options.maxIssues ?? 20),
         maxPrs: Number(options.maxPrs ?? 20),
       });
+  const openOperatorMemoryBranches = options.openOperatorMemoryBranches
+    ?? (options.openOperatorMemoryInput
+      ? JSON.parse(await readFile(path.resolve(options.openOperatorMemoryInput), "utf8"))
+      : options.discoveryInput
+        ? []
+        : await loadOpenOperatorMemoryBranches(repo));
 
   const opportunities = discoverOpportunities({
     repo,
@@ -52,6 +58,7 @@ export async function runAutomatonCycle(options = {}) {
     memory,
     policy,
     now,
+    openOperatorMemoryBranches,
   });
   const selection = selectOpportunity({
     scored,
@@ -159,6 +166,7 @@ export function discoverOpportunities({ repo, discovery, dossiers, memory, now }
         age_days: ageDays(now, updatedAt),
         stale_days: ageDays(now, updatedAt),
         is_draft: Boolean(pr.isDraft ?? pr.is_draft),
+        head_ref_name: firstString(pr.headRefName ?? pr.head_ref_name),
         dossier,
         memory_records: findRelevantMemory(memory, `${targetRepo}#pr/${pr.number}`, targetRepo, "pr-triage"),
       });
@@ -189,7 +197,7 @@ export function discoverOpportunities({ repo, discovery, dossiers, memory, now }
   return opportunities;
 }
 
-export function scoreOpportunities({ opportunities, dossiers, memory, policy, now }) {
+export function scoreOpportunities({ opportunities, dossiers, memory, policy, now, openOperatorMemoryBranches = [] }) {
   return opportunities
     .map((opportunity) => scoreOpportunity({
       opportunity,
@@ -197,11 +205,12 @@ export function scoreOpportunities({ opportunities, dossiers, memory, policy, no
       memory,
       policy,
       now,
+      openOperatorMemoryBranches,
     }))
     .sort((left, right) => right.score - left.score);
 }
 
-export function scoreOpportunity({ opportunity, dossiers, memory, policy, now }) {
+export function scoreOpportunity({ opportunity, dossiers, memory, policy, now, openOperatorMemoryBranches = [] }) {
   const dossier = opportunity.dossier ?? dossiers[slugifyRepoLike(opportunity.target_repo)] ?? null;
   const allowedLanes = dossier?.default_lanes ?? [];
   const recentOutcomes = dossier?.recent_outcomes ?? [];
@@ -217,7 +226,12 @@ export function scoreOpportunity({ opportunity, dossiers, memory, policy, now })
     proof_strength: computeProofStrength(opportunity),
     compounding_value: computeCompoundingValue(opportunity, dossier),
     tractability: computeTractability(opportunity),
-    novelty: computeNovelty(opportunity, recentOutcomes, memoryRecords),
+    novelty: computeNovelty(
+      opportunity,
+      recentOutcomes,
+      memoryRecords,
+      countRecentLaneExecutions(memory, opportunity.lane),
+    ),
     maintenance_efficiency: computeMaintenanceEfficiency(opportunity),
   };
 
@@ -228,9 +242,20 @@ export function scoreOpportunity({ opportunity, dossiers, memory, policy, now })
     policy,
   });
   const lane_allowed = allowedLanes.length === 0 || allowedLanes.includes(opportunity.lane);
+  const within_v1_scope = dossier !== null || opportunity.target_repo === "nilstate/automaton";
   const veto_reasons = [];
+  if (!within_v1_scope) {
+    veto_reasons.push("target_outside_prerelease_v1_scope");
+  }
   if (!lane_allowed) {
     veto_reasons.push("lane_not_allowed_by_target");
+  }
+  if (String(opportunity.head_ref_name ?? "").startsWith("runx/operator-memory-")) {
+    veto_reasons.push("subject_is_operator_memory_pr");
+  }
+  const operatorMemoryBranch = operatorMemoryBranchForOpportunity(opportunity);
+  if (operatorMemoryBranch && openOperatorMemoryBranches.includes(operatorMemoryBranch)) {
+    veto_reasons.push("open_operator_memory_pr");
   }
   if (cooldown.active) {
     veto_reasons.push(`cooldown:${cooldown.reason}`);
@@ -249,6 +274,7 @@ export function scoreOpportunity({ opportunity, dossiers, memory, policy, now })
   return {
     ...opportunity,
     lane_allowed,
+    within_v1_scope,
     metrics,
     score,
     cooldown,
@@ -430,6 +456,22 @@ async function loadTargetDossiers(targetDir) {
   return dossiers;
 }
 
+async function loadOpenOperatorMemoryBranches(repo) {
+  const listing = JSON.parse(run("gh", [
+    "pr",
+    "list",
+    "--repo",
+    repo,
+    "--state",
+    "open",
+    "--json",
+    "headRefName",
+  ]));
+  return normalizeCollection(listing)
+    .map((entry) => firstString(entry?.headRefName))
+    .filter((branch) => branch.startsWith("runx/operator-memory-"));
+}
+
 async function loadOperatorMemory(repoRoot) {
   return {
     history: await loadMarkdownMemory(path.join(repoRoot, "history"), repoRoot),
@@ -562,12 +604,13 @@ function computeTractability(opportunity) {
   return 0.65;
 }
 
-function computeNovelty(opportunity, recentOutcomes, memoryRecords) {
+function computeNovelty(opportunity, recentOutcomes, memoryRecords, recentLaneExecutions = 0) {
   const sameLaneOutcomes = recentOutcomes.filter((entry) => entry.lane === opportunity.lane);
   const sameSubjectRecords = memoryRecords.filter((entry) => entry.subject_locator === opportunity.subject_locator);
   let score = 0.82;
   score -= Math.min(sameLaneOutcomes.length, 2) * 0.14;
   score -= Math.min(sameSubjectRecords.length, 2) * 0.09;
+  score -= Math.min(Math.max(recentLaneExecutions - 1, 0), 3) * 0.05;
   return clamp(score, 0.2, 1);
 }
 
@@ -628,6 +671,10 @@ function parseArgs(argv) {
       options.discoveryInput = requireValue(argv, ++index, token);
       continue;
     }
+    if (token === "--open-operator-memory-input") {
+      options.openOperatorMemoryInput = requireValue(argv, ++index, token);
+      continue;
+    }
     if (token === "--dispatch-ref") {
       options.dispatchRef = requireValue(argv, ++index, token);
       continue;
@@ -638,6 +685,10 @@ function parseArgs(argv) {
     }
     if (token === "--max-prs") {
       options.maxPrs = requireValue(argv, ++index, token);
+      continue;
+    }
+    if (token === "--allow-external-targets") {
+      options.allowExternalTargets = true;
       continue;
     }
     if (token === "--now") {
@@ -738,6 +789,28 @@ function findLatestLaneDate(memory, lane) {
     .filter(Boolean)
     .sort()
     .at(-1);
+}
+
+function countRecentLaneExecutions(memory, lane, limit = 6) {
+  return [...memory.history, ...memory.reflections]
+    .filter((entry) => entry.lane === lane)
+    .sort((left, right) => String(right.date).localeCompare(String(left.date)))
+    .slice(0, limit)
+    .length;
+}
+
+function operatorMemoryBranchForOpportunity(opportunity) {
+  const targetSlug = slugifyRepoLike(opportunity.target_repo ?? opportunity.subject_locator);
+  if (!targetSlug || !opportunity.lane) {
+    return null;
+  }
+  if (opportunity.pr_number) {
+    return `runx/operator-memory-${opportunity.lane}-${targetSlug}-pr-${opportunity.pr_number}`;
+  }
+  if (opportunity.issue_number) {
+    return `runx/operator-memory-${opportunity.lane}-${targetSlug}-issue-${opportunity.issue_number}`;
+  }
+  return null;
 }
 
 function unique(values) {

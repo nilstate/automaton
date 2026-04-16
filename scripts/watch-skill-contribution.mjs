@@ -100,6 +100,8 @@ const feedEvent = {
   summary: summaryForState(state, options.repo, checks, skillId),
   metadata: {
     lane: state === "accepted_upstream" ? "upstream-skill" : "skill-contribution-watch",
+    feed_channel: "main",
+    main_feed_eligible: true,
     state,
     target_repo: options.repo,
     skill_path: options.candidatePath,

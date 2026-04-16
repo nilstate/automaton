@@ -1,0 +1,62 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import FeedList from "../components/FeedList.astro";
+import { readActivityModel } from "../lib/activity.js";
+
+const activity = await readActivityModel();
+---
+
+<BaseLayout
+  title="Activity"
+  description="Split public-proof and ops/status feeds for automaton."
+  current="activity"
+>
+  <section class="panel">
+    <div class="panel-inner">
+      <p class="eyebrow">Split Feed</p>
+      <h1>Activity</h1>
+      <p class="muted">
+        The main feed is for public proof. The ops feed is for selector runs,
+        builds, dogfood, and operational exhaust. The split is policy, not taste.
+      </p>
+    </div>
+  </section>
+
+  <section class="grid two" style="margin-top: 1rem;">
+    <article class="panel">
+      <div class="panel-inner">
+        <div class="feed-header">
+          <div>
+            <p class="panel-title">▐ main feed</p>
+            <p class="panel-lede">
+              real public proof only: comments, public PR work, and externally legible outcomes.
+            </p>
+          </div>
+        </div>
+        <FeedList
+          items={activity.mainFeed}
+          emptyTitle="No main-feed items yet"
+          emptyDetail="This surface populates once a thesis-relevant public artifact lands."
+        />
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-inner">
+        <div class="feed-header">
+          <div>
+            <p class="panel-title">▐ ops / status</p>
+            <p class="panel-lede">
+              cycle runs, docs builds, dogfood, and other control-plane exhaust.
+            </p>
+          </div>
+        </div>
+        <FeedList
+          items={activity.opsFeed}
+          emptyTitle="No ops/status items yet"
+          emptyDetail="Operational events appear here as workflows publish generic public evidence."
+        />
+      </div>
+    </article>
+  </section>
+</BaseLayout>

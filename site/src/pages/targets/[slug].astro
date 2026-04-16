@@ -21,14 +21,18 @@ const target = await readRepoDoc(`state/targets/${slug}.md`);
   current="targets"
 >
   <section class="panel">
-    <p class="eyebrow">{target?.frontmatter["subject_kind"] ?? "target dossier"}</p>
-    <h1>{target?.title}</h1>
-    <p class="muted">{target?.frontmatter["subject_locator"]}</p>
+    <div class="panel-inner">
+      <p class="eyebrow">{target?.frontmatter["subject_kind"] ?? "target dossier"}</p>
+      <h1>{target?.title}</h1>
+      <p class="muted">{target?.frontmatter["subject_locator"]}</p>
+    </div>
   </section>
 
   {target && (
     <article class="panel" style="margin-top: 1rem;">
-      <div class="prose" set:html={target.html} />
+      <div class="panel-inner">
+        <div class="prose" set:html={target.html} />
+      </div>
     </article>
   )}
 </BaseLayout>

@@ -137,7 +137,6 @@ jobs:
             --branch "runx/sourcey-refresh" \
             --title "[runx] refresh Sourcey docs" \
             --commit-message "docs(sourcey): refresh docs source" \
-            --close-existing-if-noop \
             --body-file ".artifacts/sourcey-refresh/pr-body.md" \
             > .artifacts/sourcey-refresh/publish.json
           cat .artifacts/sourcey-refresh/publish.json

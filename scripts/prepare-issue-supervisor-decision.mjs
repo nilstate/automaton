@@ -1,9 +1,16 @@
 import { readFile, writeFile } from "node:fs/promises";
 
+import {
+  collectWorkerValidationIssues,
+  isPrereleaseEligibleTargetRepo,
+  loadVerificationProfileCatalogSync,
+  normalizeWorkspaceChangePlanRequest as validateWorkspaceChangePlanRequest,
+} from "./automaton-v1-contracts.mjs";
+
 export async function main(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
   const report = JSON.parse(await readFile(options.input, "utf8"));
-  const output = prepareIssueSupervisorDecision(report);
+  const output = prepareIssueSupervisorDecision(report, options);
 
   if (options.output) {
     await writeFile(options.output, `${JSON.stringify(output, null, 2)}\n`);
@@ -12,9 +19,11 @@ export async function main(argv = process.argv.slice(2)) {
   }
 }
 
-export function prepareIssueSupervisorDecision(report) {
+export function prepareIssueSupervisorDecision(report, options = {}) {
   const triage = extractTriageReport(report);
   const changeSet = extractChangeSet(report);
+  const defaultRepo = firstString(options.defaultRepo);
+  const verificationCatalog = loadVerificationProfileCatalogSync(options.repoRoot);
   const recommendedLane = firstString(triage.recommended_lane) ?? "manual-triage";
   const commenceDecision = normalizeEnum(
     triage.commence_decision,
@@ -31,17 +40,42 @@ export function prepareIssueSupervisorDecision(report) {
     actionDecision === "request_review" ? "issue" : "none",
     ["issue", "draft_pr", "none"],
   );
-  const workspaceChangePlanRequest = collectWorkspaceChangePlanRequest(triage, changeSet);
+  const boundaryNotes = [];
+  const rawWorkspaceChangePlanRequest = collectWorkspaceChangePlanRequest(triage, changeSet);
+  let workspaceChangePlanRequest;
+  if (rawWorkspaceChangePlanRequest) {
+    try {
+      workspaceChangePlanRequest = validateWorkspaceChangePlanRequest(rawWorkspaceChangePlanRequest, {
+        targetRepo: defaultRepo,
+      });
+    } catch (error) {
+      boundaryNotes.push(error.message);
+    }
+  }
   const proposedWorkerRequests = collectProposedWorkerRequests(triage, changeSet);
+  const workerValidation = collectWorkerValidationIssues(proposedWorkerRequests, {
+    defaultRepo,
+    catalog: verificationCatalog,
+  });
+  boundaryNotes.push(...workerValidation.issues);
+  if (
+    actionDecision === "proceed_to_plan"
+    && defaultRepo
+    && !isPrereleaseEligibleTargetRepo(defaultRepo)
+  ) {
+    boundaryNotes.push(`target repo '${defaultRepo}' is outside prerelease v1 scope; planning stays comment-only.`);
+  }
   const shouldStartPlanner =
     commenceDecision === "approve"
     && actionDecision === "proceed_to_plan"
+    && boundaryNotes.length === 0
     && Boolean(workspaceChangePlanRequest);
   const shouldStartWorker =
     commenceDecision === "approve"
     && actionDecision === "proceed_to_build"
-    && proposedWorkerRequests.length > 0;
-  const workerRequests = shouldStartWorker ? proposedWorkerRequests : [];
+    && workerValidation.issues.length === 0
+    && workerValidation.accepted.length > 0;
+  const workerRequests = shouldStartWorker ? workerValidation.accepted : [];
   const commentTarget = resolveCommentTarget(reviewTarget);
   const commentBody = buildSupervisorComment({
     triage,
@@ -52,6 +86,7 @@ export function prepareIssueSupervisorDecision(report) {
     commentTarget,
     shouldStartPlanner,
     workerCount: workerRequests.length,
+    boundaryNotes,
   });
 
   return {
@@ -85,6 +120,7 @@ export function buildSupervisorComment({
   commentTarget,
   shouldStartPlanner = false,
   workerCount = 0,
+  boundaryNotes = [],
 }) {
   const lines = [
     "## runx issue supervisor",
@@ -132,6 +168,14 @@ export function buildSupervisorComment({
     lines.push("Operator notes:");
     for (const note of operatorNotes) {
       lines.push(`- ${note.trim()}`);
+    }
+  }
+
+  if (boundaryNotes.length > 0) {
+    lines.push("");
+    lines.push("Boundary notes:");
+    for (const note of boundaryNotes) {
+      lines.push(`- ${note}`);
     }
   }
 
@@ -267,7 +311,7 @@ function buildFallbackIssueToPrRequest(triage, changeSet) {
 function collectWorkspaceChangePlanRequest(triage, changeSet) {
   const explicit = asRecord(triage.workspace_change_plan_request);
   if (explicit) {
-    return normalizeWorkspaceChangePlanRequest(explicit, changeSet);
+    return coerceWorkspaceChangePlanRequest(explicit, changeSet);
   }
 
   const compatibility = asRecord(triage.objective_request);
@@ -275,7 +319,7 @@ function collectWorkspaceChangePlanRequest(triage, changeSet) {
     return undefined;
   }
 
-  return normalizeWorkspaceChangePlanRequest(
+  return coerceWorkspaceChangePlanRequest(
     {
       change_set_id: firstString(changeSet?.change_set_id),
       objective: firstString(compatibility.objective),
@@ -288,7 +332,7 @@ function collectWorkspaceChangePlanRequest(triage, changeSet) {
   );
 }
 
-function normalizeWorkspaceChangePlanRequest(value, changeSet) {
+function coerceWorkspaceChangePlanRequest(value, changeSet) {
   const record = asRecord(value);
   if (!record) {
     return undefined;
@@ -351,6 +395,14 @@ function parseArgs(argv) {
     }
     if (token === "--output") {
       options.output = requireValue(argv, ++index, token);
+      continue;
+    }
+    if (token === "--default-repo") {
+      options.defaultRepo = requireValue(argv, ++index, token);
+      continue;
+    }
+    if (token === "--repo-root") {
+      options.repoRoot = requireValue(argv, ++index, token);
       continue;
     }
     throw new Error(`Unknown argument: ${token}`);

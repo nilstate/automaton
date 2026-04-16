@@ -4,6 +4,7 @@ on:
   workflow_run:
     workflows:
       - ci
+      - automaton-cycle
       - docs-pages
       - issue-supervisor
       - pr-triage
@@ -108,6 +109,8 @@ jobs:
               name = (workflow or "").lower()
               if name == "ci":
                   return "ci"
+              if name == "automaton-cycle":
+                  return "ops"
               if name == "docs-pages":
                   return "docs"
               if "sourcey" in name:
@@ -124,9 +127,26 @@ jobs:
                   return "automaton"
               return "automaton"
 
+          def feed_channel(workflow: str | None, status: str) -> str:
+              name = (workflow or "").lower()
+              if name in {"pr-triage", "issue-supervisor", "skill-contribution", "skill-contribution-watch"} and status == "success":
+                  return "main"
+              return "ops"
+
           def summary_for(workflow: str | None, status: str, metadata: dict) -> str:
               lane = metadata["lane"]
               checks = f"{metadata['checks_passed']}/{metadata['checks_total']} checks"
+              channel = metadata["feed_channel"]
+              if workflow == "pr-triage":
+                  return f"PR triage lane finished with {status}; workflow artifacts carry the public review comment, receipt trail, and operator-memory update."
+              if workflow == "issue-supervisor":
+                  return f"Issue supervisor finished with {status}; workflow artifacts carry the public comment, routing decisions, and receipt trail."
+              if workflow == "skill-contribution":
+                  return f"Portable SKILL.md contribution lane finished with {status}; the upstream draft PR or contribution packet is linked from workflow artifacts."
+              if workflow == "skill-contribution-watch":
+                  return f"Upstream skill adoption watch finished with {status}; merge state and registry-binding evidence are linked from workflow artifacts."
+              if workflow == "automaton-cycle":
+                  return f"Selector cycle finished with {status}; artifacts record the assessed queue, thesis scores, and dispatched next lane."
               if lane == "docs":
                   return f"Automaton public site workflow finished with {status}; {checks} recorded."
               if lane == "ci":
@@ -139,6 +159,8 @@ jobs:
                   return f"Portable SKILL.md contribution lane finished with {status}; artifacts carry the upstream packet and validation proof."
               if lane == "upstream-skill":
                   return f"Upstream SKILL.md watch lane finished with {status}; artifacts carry the PR transition and registry-binding request when merged."
+              if channel == "main":
+                  return f"{workflow or 'automaton workflow'} finished with {status}; the linked workflow artifacts carry the public proof and receipt trail."
               return f"{workflow or 'automaton workflow'} finished with {status}; {checks} recorded."
 
           github_run_url = None
@@ -147,10 +169,13 @@ jobs:
 
           workflow = trim(os.environ.get("RUNX_PUBLIC_EVIDENCE_WORKFLOW")) or trim(os.environ.get("GITHUB_WORKFLOW"))
           status = trim(os.environ.get("RUNX_PUBLIC_EVIDENCE_STATUS")) or "success"
+          channel = feed_channel(workflow, status)
           run_url = trim(os.environ.get("RUNX_PUBLIC_EVIDENCE_URL")) or github_run_url
           failed = status not in {"success", "pending", "running", "waiting"}
           metadata = {
               "lane": proof_lane(workflow),
+              "feed_channel": channel,
+              "main_feed_eligible": channel == "main",
               "duration_ms": duration_ms(),
               "checks_total": 1,
               "checks_passed": 0 if failed else 1,

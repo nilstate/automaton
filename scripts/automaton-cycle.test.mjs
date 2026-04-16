@@ -49,7 +49,7 @@ test("loadScoringPolicy parses weights, thresholds, and cooldowns", async () => 
   assert.equal(policy.cooldown_hours.ignored, 168);
 });
 
-test("discover, score, and select prefer live external PRs over stale maintenance work", async () => {
+test("discover, score, and select curated external targets inside prerelease v1", async () => {
   const tempRoot = await mkdtemp(path.join(os.tmpdir(), "automaton-cycle-"));
   const repoRoot = path.join(tempRoot, "repo");
   await mkdir(path.join(repoRoot, "doctrine"), { recursive: true });
@@ -160,9 +160,11 @@ test("discover, score, and select prefer live external PRs over stale maintenanc
   });
 
   assert.equal(result.selection.status, "selected");
-  assert.equal(result.selection.selected.lane, "pr-triage");
   assert.equal(result.selection.selected.target_repo, "vercel/next.js");
+  assert.equal(result.selection.selected.lane, "pr-triage");
   assert.match(result.selection.priorities[0].subject_locator, /vercel\/next\.js#pr\/101/);
+  assert.equal(result.selection.priorities[0].within_v1_scope, true);
+  assert.equal(result.selection.priorities[0].vetoed, false);
 });
 
 test("scoreOpportunities enforces cooldowns from target dossiers", async () => {
@@ -227,7 +229,7 @@ test("scoreOpportunities enforces cooldowns from target dossiers", async () => {
   assert.match(scored[0].veto_reasons.join(","), /cooldown/);
 });
 
-test("buildDispatchPlan carries target_repo for external opportunities", () => {
+test("buildDispatchPlan dispatches curated external opportunities", () => {
   const plan = buildDispatchPlan({
     repo: "nilstate/automaton",
     dispatchRef: "main",
@@ -246,7 +248,112 @@ test("buildDispatchPlan carries target_repo for external opportunities", () => {
   });
 
   assert.equal(plan.status, "ready");
+  assert.equal(plan.lane, "pr-triage");
   assert.equal(plan.workflow, "pr-triage.yml");
   assert.equal(plan.inputs.target_repo, "vercel/next.js");
   assert.equal(plan.inputs.pr_number, "101");
+});
+
+test("runAutomatonCycle vetoes candidates with an open operator-memory PR", async () => {
+  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "automaton-open-pr-"));
+  const repoRoot = path.join(tempRoot, "repo");
+  await mkdir(path.join(repoRoot, "doctrine"), { recursive: true });
+  await mkdir(path.join(repoRoot, "state", "targets"), { recursive: true });
+  await mkdir(path.join(repoRoot, "history"), { recursive: true });
+  await mkdir(path.join(repoRoot, "reflections"), { recursive: true });
+
+  await writeFile(
+    path.join(repoRoot, "doctrine", "SCORING.md"),
+    [
+      "# Automaton Scoring Policy",
+      "",
+      "- `stranger_value`: `0.24`",
+      "- `proof_strength`: `0.24`",
+      "- `compounding_value`: `0.19`",
+      "- `tractability`: `0.16`",
+      "- `novelty`: `0.09`",
+      "- `maintenance_efficiency`: `0.08`",
+      "",
+      "- `stranger_value < 0.60`",
+      "- `proof_strength < 0.70`",
+      "If the top non-vetoed candidate scores below `0.68`, prefer `no_op`.",
+      "",
+      "- `completed`, `success`, `merged`, `published`: `72h`",
+      "- `noop`, `ignored`, `stale`, `silence`: `7d`",
+      "- `rejected`, `corrected`: `21d`",
+      "- `failed`, `error`: `24h`",
+      "",
+    ].join("\n"),
+  );
+
+  await writeFile(
+    path.join(repoRoot, "state", "targets", "astral-sh-uv.md"),
+    [
+      "---",
+      "title: Target Dossier — astral-sh/uv",
+      "subject_locator: astral-sh/uv",
+      "---",
+      "",
+      "# astral-sh/uv",
+      "",
+      "## Default Lanes",
+      "",
+      "- `pr-triage`",
+      "- `issue-supervisor`",
+      "",
+    ].join("\n"),
+  );
+
+  const discoveryPath = path.join(repoRoot, "discovery.json");
+  await writeFile(
+    discoveryPath,
+    `${JSON.stringify(
+      {
+        "astral-sh/uv": {
+          issues: [
+            {
+              number: 202,
+              title: "docs: clarify resolver failure messaging",
+              body: "Narrow issue with a bounded next step.",
+              url: "https://github.com/astral-sh/uv/issues/202",
+              authorAssociation: "NONE",
+              author: { login: "outside-dev" },
+              updatedAt: "2026-04-15T10:00:00Z",
+            },
+          ],
+          prs: [
+            {
+              number: 101,
+              title: "docs: tighten resolver validation",
+              body: "Small external PR.",
+              url: "https://github.com/astral-sh/uv/pull/101",
+              isDraft: false,
+              authorAssociation: "NONE",
+              author: { login: "outside-dev" },
+              updatedAt: "2026-04-15T12:00:00Z",
+              headRefName: "feature/docs-fix",
+            },
+          ],
+        },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+
+  const result = await runAutomatonCycle({
+    repoRoot,
+    repo: "nilstate/automaton",
+    discoveryInput: discoveryPath,
+    openOperatorMemoryBranches: ["runx/operator-memory-pr-triage-astral-sh-uv-pr-101"],
+    now: "2026-04-16T12:00:00Z",
+  });
+
+  assert.equal(result.selection.status, "selected");
+  assert.equal(result.selection.selected.target_repo, "astral-sh/uv");
+  assert.equal(result.selection.selected.lane, "issue-supervisor");
+  assert.equal(result.selection.selected.issue_number, "202");
+  assert.equal(result.selection.priorities[0].subject_locator, "astral-sh/uv#pr/101");
+  assert.match(result.selection.priorities[0].veto_reasons.join(","), /open_operator_memory_pr/);
+  assert.equal(result.selection.priorities[0].within_v1_scope, true);
 });

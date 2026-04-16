@@ -1,0 +1,89 @@
+---
+interface FeedItem {
+  id: string;
+  title: string;
+  summary: string;
+  status: string;
+  workflow: string;
+  channel: string;
+  proofLane: string;
+  repo: string;
+  timestamp: string;
+  timestampIso: string;
+  url: string | null;
+  reference: string;
+  artifactUrl: string | null;
+  commitShort: string | null;
+  failureReason: string | null;
+}
+
+interface Props {
+  items?: FeedItem[];
+  emptyTitle?: string;
+  emptyDetail?: string;
+}
+
+const {
+  items = [],
+  emptyTitle = "No activity yet",
+  emptyDetail = "This surface updates when public proofs or operator status events are recorded.",
+} = Astro.props as Props;
+---
+
+<div class="live-feed__rows">
+  {items.length === 0 ? (
+    <div class="live-feed__empty">
+      <strong>{emptyTitle}</strong>
+      <span>{emptyDetail}</span>
+    </div>
+  ) : (
+    items.map((item, index) => (
+      <details class={`feed-card feed-card--${item.status} feed-card--lane-${item.channel === "main" ? "sourcey" : "automaton"}`} open={index === 0}>
+        <summary class="feed-card__summary">
+          <div class="feed-card__topline">
+            <div class="feed-card__badges">
+              <span class="feed-card__lane">{item.channel.toUpperCase()}</span>
+              <span class="feed-card__source">{item.proofLane.toUpperCase()}</span>
+              <span class="feed-card__status">{item.status === "ok" ? "verified" : item.status === "partial" ? "pending" : "failed"}</span>
+            </div>
+            <span class="feed-card__time">{item.timestamp}</span>
+          </div>
+          <div class="feed-card__headline">
+            <h3 class="feed-card__title">{item.title}</h3>
+            <div class="feed-card__subline">
+              {item.repo ? <span class="feed-card__target">{item.repo}</span> : null}
+              <span class="feed-card__reference">{item.reference}</span>
+            </div>
+          </div>
+          <p class="feed-card__summary-text">{item.failureReason ?? item.summary}</p>
+        </summary>
+        <div class="feed-card__body">
+          <div class="feed-card__body-inner">
+            <div class="feed-card__proofs">
+              {item.workflow ? (
+                <span class="feed-card__proof">
+                  <span>workflow</span>
+                  <strong>{item.workflow}</strong>
+                </span>
+              ) : null}
+              {item.commitShort ? (
+                <span class="feed-card__proof">
+                  <span>commit</span>
+                  <strong>{item.commitShort}</strong>
+                </span>
+              ) : null}
+              <span class="feed-card__proof">
+                <span>channel</span>
+                <strong>{item.channel}</strong>
+              </span>
+            </div>
+            <div class="feed-card__links">
+              {item.url ? <a href={item.url}>workflow</a> : null}
+              {item.artifactUrl ? <a href={item.artifactUrl}>artifacts</a> : null}
+            </div>
+          </div>
+        </div>
+      </details>
+    ))
+  )}
+</div>

@@ -23,6 +23,7 @@ const required = [
   "docs/operations.md",
   "state/priorities.md",
   "state/capabilities.md",
+  "state/verification-profiles.json",
   "state/targets/nilstate-automaton.md",
   "state/targets/nilstate-runx.md",
   "history/README.md",

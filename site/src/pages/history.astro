@@ -7,19 +7,23 @@ const history = await listRepoDocs("history", { limit: 32 });
 
 <BaseLayout title="History" description="Append-only public evolutionary history." current="history">
   <section class="panel">
-    <p class="eyebrow">Evolutionary Trail</p>
-    <h1>History</h1>
-    <p class="muted">
-      Curated append-only records of meaningful shifts in the operator.
-    </p>
+    <div class="panel-inner">
+      <p class="eyebrow">Evolutionary Trail</p>
+      <h1>History</h1>
+      <p class="muted">
+        Curated append-only records of meaningful shifts in the operator.
+      </p>
+    </div>
   </section>
 
   <section class="stack" style="margin-top: 1rem;">
     {history.map((entry) => (
       <article class="panel">
-        <p class="eyebrow">{entry.frontmatter["date"] ?? entry.frontmatter["updated"] ?? entry.path}</p>
-        <h2>{entry.title}</h2>
-        <div class="prose" set:html={entry.html} />
+        <div class="panel-inner">
+          <p class="eyebrow">{entry.frontmatter["date"] ?? entry.frontmatter["updated"] ?? entry.path}</p>
+          <h2>{entry.title}</h2>
+          <div class="prose" set:html={entry.html} />
+        </div>
       </article>
     ))}
   </section>

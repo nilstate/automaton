@@ -134,8 +134,19 @@ jobs:
           echo "EOF" >> "$GITHUB_OUTPUT"
           echo "url=$(jq -r '.url' .artifacts/issue-supervisor/issue.json)" >> "$GITHUB_OUTPUT"
 
-      - name: Run issue supervisor
+      - name: Enforce prerelease target scope
         if: ${{ steps.preflight.outputs.enabled == 'true' }}
+        id: target_scope
+        run: |
+          if printf '%s' "${{ steps.issue.outputs.target_repo }}" | grep -Eq '^nilstate/'; then
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+            echo "Target repo '${{ steps.issue.outputs.target_repo }}' is outside prerelease v1 scope; skipping issue-supervisor." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Run issue supervisor
+        if: ${{ steps.preflight.outputs.enabled == 'true' && steps.target_scope.outputs.allowed == 'true' }}
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ISSUE_TITLE: ${{ steps.issue.outputs.title }}
@@ -165,6 +176,8 @@ jobs:
             --operator_context "Act as the issue supervisor commencement gate. Always draft a user-facing triage comment. Approve issue-to-pr only when the work is bounded to one repo-scoped governed PR. Use action_decision=proceed_to_plan when objective-decompose should freeze a shared plan before mutation. Use action_decision=request_review when the issue needs discussion before planning or mutation."
           node scripts/prepare-issue-supervisor-decision.mjs \
             --input "$GITHUB_WORKSPACE/.artifacts/issue-supervisor/triage-result.json" \
+            --repo-root "$GITHUB_WORKSPACE" \
+            --default-repo "${{ steps.issue.outputs.target_repo }}" \
             --output "$GITHUB_WORKSPACE/.artifacts/issue-supervisor/supervisor-decision.json"
           node scripts/apply-automaton-promotions.mjs \
             --repo-root "$GITHUB_WORKSPACE" \
@@ -185,7 +198,6 @@ jobs:
             --title "[runx] update issue-supervisor operator memory" \
             --commit-message "docs(memory): update issue-supervisor operator memory" \
             --body-file "$GITHUB_WORKSPACE/.artifacts/issue-supervisor/operator-memory-pr-body.md" \
-            --close-existing-if-noop \
             > "$GITHUB_WORKSPACE/.artifacts/issue-supervisor/operator-memory-publish.json"
           jq -r '.comment_body' "$GITHUB_WORKSPACE/.artifacts/issue-supervisor/supervisor-decision.json" \
             > "$GITHUB_WORKSPACE/.artifacts/issue-supervisor/supervisor-comment.md"
@@ -193,6 +205,8 @@ jobs:
             node scripts/run-issue-supervisor-plan.mjs \
               --decision "$GITHUB_WORKSPACE/.artifacts/issue-supervisor/supervisor-decision.json" \
               --runx-root "$GITHUB_WORKSPACE/.runx/runx" \
+              --target-repo "${{ steps.issue.outputs.target_repo }}" \
+              --issue-number "${{ steps.issue.outputs.number }}" \
               --receipt-dir "$GITHUB_WORKSPACE/.artifacts/issue-supervisor/plan-receipts" \
               --trace-dir "$GITHUB_WORKSPACE/.artifacts/issue-supervisor/plan-provider-trace" \
               --output "$GITHUB_WORKSPACE/.artifacts/issue-supervisor/plan-result.json" \
@@ -219,7 +233,7 @@ jobs:
             --output "$GITHUB_WORKSPACE/.artifacts/issue-supervisor/worker-run-summary.json"
 
       - name: Post supervisor issue comment
-        if: ${{ steps.preflight.outputs.enabled == 'true' && always() }}
+        if: ${{ steps.preflight.outputs.enabled == 'true' && steps.target_scope.outputs.allowed == 'true' && always() }}
         run: |
           if [ ! -f ".artifacts/issue-supervisor/supervisor-comment.md" ]; then
             exit 0
@@ -230,7 +244,7 @@ jobs:
             --body-file ".artifacts/issue-supervisor/supervisor-comment.md"
 
       - name: Upload artifacts
-        if: ${{ always() && steps.preflight.outputs.enabled == 'true' }}
+        if: ${{ always() && steps.preflight.outputs.enabled == 'true' && steps.target_scope.outputs.allowed == 'true' }}
         uses: actions/upload-artifact@v7
         with:
           name: issue-supervisor-${{ steps.issue.outputs.number || github.event.issue.number || github.event.inputs.issue_number }}

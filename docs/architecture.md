@@ -501,6 +501,10 @@ The selector is now a real operator component, not just a plan:
   cycle on GitHub
 - target dossiers in `state/targets/` provide default-lane posture and recent
   outcomes used for cooldowns
+- open operator-memory PRs for the same subject act as a hard selector veto, so
+  repeated work stops before the promotion branch is merged
+- curated target dossiers, not repo-name prefixes, are now the real external
+  scope boundary for public comment/review lanes
 
 The current discovery surface is:
 
@@ -596,11 +600,17 @@ Rules:
 The 10/10 public face should have a small, stable route contract:
 
 - `/` — thesis, current posture, latest proof, current stage
+- `/activity` — split public-proof feed and ops/status feed
 - `/priorities` — live priorities and rationale from `state/`
 - `/history` — append-only public history
 - `/capabilities` — current lanes, trust posture, and capability inventory
 - `/reflections` — selected public reflections
 - `/targets/[slug]` — public target context where appropriate
+
+The public-face split is now explicit:
+
+- main feed: thesis-relevant public proofs
+- ops/status feed: selector runs, builds, dogfood, and operational exhaust
 
 Every page should point back to receipts, snapshots, or public artifacts.
 

@@ -3,6 +3,8 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { isPrereleaseEligibleTargetRepo } from "./automaton-v1-contracts.mjs";
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, "..");
 
@@ -25,6 +27,10 @@ async function main(argv = process.argv.slice(2)) {
   const bridgeOutput = `${outputPath}.bridge.json`;
   const artifactRoot = path.dirname(outputPath);
   const repo = process.env.GITHUB_REPOSITORY || "nilstate/automaton";
+  const targetRepo = options.targetRepo ?? repo;
+  if (!isPrereleaseEligibleTargetRepo(targetRepo)) {
+    throw new Error(`target repo '${targetRepo}' is outside prerelease v1 scope.`);
+  }
   await mkdir(path.dirname(outputPath), { recursive: true });
   await mkdir(path.resolve(options.receiptDir), { recursive: true });
   await mkdir(path.resolve(options.traceDir), { recursive: true });
@@ -41,11 +47,13 @@ async function main(argv = process.argv.slice(2)) {
     "--subject-kind",
     "github_issue",
     "--subject-locator",
-    `issue-supervisor-plan:${firstString(changeSet?.source?.id) ?? "unknown"}`,
+    `${targetRepo}#issue/${options.issueNumber ?? firstString(changeSet?.source?.id) ?? "unknown"}`,
     "--repo",
     repo,
     "--target-repo",
-    repo,
+    targetRepo,
+    "--issue-number",
+    options.issueNumber ?? firstString(changeSet?.source?.id) ?? "unknown",
     "--receipt-dir",
     path.resolve(options.receiptDir),
     "--trace-dir",
@@ -161,6 +169,14 @@ function parseArgs(argv) {
     }
     if (token === "--output") {
       options.output = requireValue(argv, ++index, token);
+      continue;
+    }
+    if (token === "--target-repo") {
+      options.targetRepo = requireValue(argv, ++index, token);
+      continue;
+    }
+    if (token === "--issue-number") {
+      options.issueNumber = requireValue(argv, ++index, token);
       continue;
     }
     if (token === "--comment-output") {

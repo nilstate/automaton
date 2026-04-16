@@ -1,10 +1,15 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import FeedList from "../components/FeedList.astro";
 import { readPublicModel, targetHref } from "../lib/content.js";
+import { readActivityModel } from "../lib/activity.js";
 
 const model = await readPublicModel();
+const activity = await readActivityModel();
 const latestHistory = model.history[0];
 const latestReflection = model.reflections[0];
+const latestProof = activity.mainFeed[0];
+const latestOps = activity.opsFeed[0];
 ---
 
 <BaseLayout
@@ -14,58 +19,117 @@ const latestReflection = model.reflections[0];
 >
   <section class="hero">
     <article class="panel">
-      <p class="eyebrow">Operator Thesis</p>
-      <h1>{model.thesis?.title ?? "Automaton"}</h1>
-      <p class="muted">{model.thesis?.excerpt}</p>
-      <div class="prose" set:html={model.thesis?.html} />
+      <div class="panel-inner">
+        <p class="eyebrow">Operator Thesis</p>
+        <h1>{model.thesis?.title ?? "Automaton"}</h1>
+        <p class="muted">{model.thesis?.excerpt}</p>
+        <div class="prose" set:html={model.thesis?.html} />
+      </div>
     </article>
 
     <div class="stack">
       <section class="panel">
-        <p class="eyebrow">Current Stage</p>
-        <h2>Context before scale</h2>
-        <p>
-          The current work is to make doctrine, state, history, and reflections
-          mechanically visible to every lane before the model acts.
-        </p>
+        <div class="panel-inner">
+          <p class="eyebrow">Current Stage</p>
+          <h2>Context before scale</h2>
+          <p>
+            The current work is to make doctrine, state, history, reflections,
+            and live proof surfaces mechanically visible before the operator acts.
+          </p>
+        </div>
       </section>
       <section class="panel">
-        <p class="eyebrow">Latest Proof</p>
-        <h2>{latestHistory?.title ?? "No history yet"}</h2>
-        <p>{latestHistory?.excerpt}</p>
-        <a class="muted" href="/history/">Read history →</a>
+        <div class="panel-inner">
+          <p class="eyebrow">Latest Proof</p>
+          <h2>{latestProof?.title ?? latestHistory?.title ?? "No proof yet"}</h2>
+          <p>{latestProof?.summary ?? latestHistory?.excerpt}</p>
+          <a class="muted" href="/activity/">Read activity →</a>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-inner">
+          <p class="eyebrow">Ops Status</p>
+          <h2>{latestOps?.title ?? "No ops events yet"}</h2>
+          <p>{latestOps?.summary ?? "The ops/status feed will appear here as runs land."}</p>
+          <a class="muted" href="/activity/">Inspect ops/status →</a>
+        </div>
       </section>
     </div>
   </section>
 
   <section class="grid two" style="margin-top: 1rem;">
     <article class="panel">
-      <p class="eyebrow">Live Priorities</p>
-      <h2>{model.priorities?.title}</h2>
-      <div class="prose" set:html={model.priorities?.html} />
+      <div class="panel-inner">
+        <p class="eyebrow">Live Priorities</p>
+        <h2>{model.priorities?.title}</h2>
+        <div class="prose" set:html={model.priorities?.html} />
+      </div>
     </article>
     <article class="panel">
-      <p class="eyebrow">Latest Reflection</p>
-      <h2>{latestReflection?.title ?? "No reflections yet"}</h2>
-      <p>{latestReflection?.excerpt}</p>
-      <a class="muted" href="/reflections/">Read reflections →</a>
+      <div class="panel-inner">
+        <p class="eyebrow">Latest Reflection</p>
+        <h2>{latestReflection?.title ?? "No reflections yet"}</h2>
+        <p>{latestReflection?.excerpt}</p>
+        <a class="muted" href="/reflections/">Read reflections →</a>
+      </div>
     </article>
   </section>
 
   <section class="grid two" style="margin-top: 1rem;">
     <article class="panel">
-      <p class="eyebrow">Guardrails</p>
-      <div class="prose" set:html={model.guardrails?.html} />
+      <div class="panel-inner">
+        <div class="feed-header">
+          <div>
+            <p class="panel-title">▐ public proof feed</p>
+            <p class="panel-lede">
+              thesis-relevant public proofs only. if this goes quiet, automaton has stopped making strangers care.
+            </p>
+          </div>
+        </div>
+        <FeedList
+          items={activity.mainFeed.slice(0, 4)}
+          emptyTitle="No thesis feed items yet"
+          emptyDetail="Public proof appears here once a public artifact or comment lands."
+        />
+      </div>
     </article>
     <article class="panel">
-      <p class="eyebrow">Targets</p>
-      <div class="stack">
-        {model.targets.map((target) => (
-          <a class="list-card" href={targetHref(target)}>
-            <h3>{target.title}</h3>
-            <p>{target.excerpt}</p>
-          </a>
-        ))}
+      <div class="panel-inner">
+        <div class="feed-header">
+          <div>
+            <p class="panel-title">▐ ops / status feed</p>
+            <p class="panel-lede">
+              selector runs, docs builds, dogfood, and other operational exhaust stay here instead of polluting the main proof wall.
+            </p>
+          </div>
+        </div>
+        <FeedList
+          items={activity.opsFeed.slice(0, 4)}
+          emptyTitle="No ops/status items yet"
+          emptyDetail="Operational runs appear here after the public evidence pipeline records them."
+        />
+      </div>
+    </article>
+  </section>
+
+  <section class="grid two" style="margin-top: 1rem;">
+    <article class="panel">
+      <div class="panel-inner">
+        <p class="eyebrow">Guardrails</p>
+        <div class="prose" set:html={model.guardrails?.html} />
+      </div>
+    </article>
+    <article class="panel">
+      <div class="panel-inner">
+        <p class="eyebrow">Targets</p>
+        <div class="stack">
+          {model.targets.map((target) => (
+            <a class="list-card" href={targetHref(target)}>
+              <h3>{target.title}</h3>
+              <p>{target.excerpt}</p>
+            </a>
+          ))}
+        </div>
       </div>
     </article>
   </section>

@@ -1,4 +1,18 @@
 ---
+import "../../../../runx/cloud/packages/tokens/dist/layers.css";
+import "../../../../runx/cloud/packages/tokens/dist/tokens.css";
+import "../../../../runx/cloud/packages/tokens/dist/themes/automaton.css";
+import "../../../../runx/cloud/packages/tokens/dist/reset.css";
+import "../../../../runx/cloud/packages/tokens/dist/base.css";
+import "../../../../runx/cloud/packages/tokens/dist/effects/dither.css";
+import "../../../../runx/cloud/packages/tokens/dist/effects/scanlines.css";
+import "../../../../runx/cloud/packages/tokens/dist/effects/vignette.css";
+import "../../../../runx/cloud/packages/tokens/dist/effects/glow.css";
+import "../../../../runx/cloud/packages/tokens/dist/utilities.css";
+import "../../../../runx/cloud/packages/ui/src/Panel/Panel.css";
+import "../../../../runx/cloud/packages/ui/src/LiveFeed/LiveFeedContent.css";
+import "../../../../runx/cloud/packages/ui/src/LiveFeed/LiveFeedHeader.css";
+
 const {
   title = "automaton",
   description = "A public operator built on runx.",
@@ -7,16 +21,19 @@ const {
 
 const nav = [
   { href: "/", label: "Thesis", key: "home" },
+  { href: "/activity/", label: "Activity", key: "activity" },
   { href: "/priorities/", label: "Priorities", key: "priorities" },
   { href: "/history/", label: "History", key: "history" },
   { href: "/capabilities/", label: "Capabilities", key: "capabilities" },
   { href: "/reflections/", label: "Reflections", key: "reflections" },
   { href: "/targets/", label: "Targets", key: "targets" },
 ];
+
+const ditherPattern = "░▒▓".repeat(76) + "\n" + "▓░▒".repeat(76);
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="automaton">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -25,30 +42,38 @@ const nav = [
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
   </head>
   <body>
-    <div class="shell">
+    <div class="dither-wash" aria-hidden="true"></div>
+    <div class="dither" aria-hidden="true">{ditherPattern}</div>
+    <div class="scanlines" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+
+    <div class="layout-shell">
       <header class="site-header">
-        <div class="brand">
-          <a href="/">automaton</a>
-          <p>a public operator built on runx</p>
+        <div class="brand-block">
+          <a class="brand-mark" href="/">automaton</a>
+          <p class="brand-subline">a public operator built on runx</p>
         </div>
-        <nav>
+        <nav class="site-nav" aria-label="primary">
           {nav.map((item) => (
             <a href={item.href} class:list={{ active: current === item.key }}>{item.label}</a>
           ))}
         </nav>
       </header>
-      <main>
+
+      <main class="layout-main">
         <slot />
       </main>
+
       <footer class="site-footer">
         <p>
           Canonical receipts live on <a href="https://runx.ai">runx.ai</a>. This
-          site renders automaton-owned doctrine, state, history, and reflections.
+          site renders automaton-owned doctrine, state, history, reflections, and
+          split activity surfaces.
         </p>
       </footer>
     </div>
@@ -56,32 +81,12 @@ const nav = [
 </html>
 
 <style is:global>
-  :root {
-    --ink: #151312;
-    --muted: #5f564f;
-    --line: rgba(21, 19, 18, 0.12);
-    --paper: #f6efe4;
-    --paper-strong: #fff8ef;
-    --accent: #cd5c37;
-    --accent-deep: #7e2b1f;
-    --sky: #f2dcc4;
-    --shadow: 0 18px 48px rgba(79, 49, 31, 0.12);
-  }
-
-  * {
-    box-sizing: border-box;
-  }
-
   html,
   body {
-    margin: 0;
     min-height: 100%;
-    background:
-      radial-gradient(circle at top left, rgba(205, 92, 55, 0.2), transparent 32rem),
-      radial-gradient(circle at 85% 10%, rgba(126, 43, 31, 0.12), transparent 24rem),
-      linear-gradient(180deg, #fffaf4 0%, var(--paper) 100%);
-    color: var(--ink);
-    font-family: "IBM Plex Sans", sans-serif;
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-family-body);
   }
 
   a {
@@ -89,163 +94,197 @@ const nav = [
     text-decoration: none;
   }
 
-  .shell {
-    width: min(1120px, calc(100vw - 2rem));
-    margin: 0 auto;
-    padding: 1.5rem 0 3rem;
+  .layout-shell {
+    position: relative;
+    z-index: var(--z-raised);
+    width: min(76rem, calc(100vw - 2rem));
+    margin-inline: auto;
+    padding: var(--space-8) 0 var(--space-16);
+  }
+
+  .layout-main {
+    display: grid;
+    gap: var(--space-6);
   }
 
   .site-header {
-    display: flex;
-    justify-content: space-between;
-    gap: 1.25rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(18rem, 1fr);
+    gap: var(--space-6);
     align-items: end;
-    padding: 0.75rem 0 2rem;
-    border-bottom: 1px solid var(--line);
+    margin-block-end: var(--space-8);
   }
 
-  .brand a {
-    display: inline-block;
-    font-family: "Fraunces", serif;
-    font-size: clamp(2rem, 4vw, 3.4rem);
-    font-weight: 700;
-    letter-spacing: -0.04em;
+  .brand-block {
+    display: grid;
+    gap: var(--space-3);
   }
 
-  .brand p {
-    margin: 0.4rem 0 0;
-    color: var(--muted);
+  .brand-mark {
+    font-family: var(--font-family-display);
+    font-size: clamp(2.6rem, 6vw, 4.8rem);
+    line-height: 0.9;
+    letter-spacing: var(--letter-spacing-neg);
+    color: var(--color-ink-bright);
+    text-shadow: 0 0 1.5rem var(--color-accent-glow);
   }
 
-  nav {
+  .brand-subline {
+    margin: 0;
+    max-width: 34rem;
+    color: var(--color-ink-dim);
+    font-size: var(--text-18);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .site-nav {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: var(--space-3);
     justify-content: flex-end;
   }
 
-  nav a {
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 0.65rem 1rem;
-    background: rgba(255, 255, 255, 0.55);
-    backdrop-filter: blur(12px);
+  .site-nav a {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--color-border-subtle);
+    background: color-mix(in srgb, var(--color-bg-raised) 86%, transparent);
+    color: var(--color-ink-dim);
+    padding: var(--space-2_5) var(--space-4);
+    min-height: 2.5rem;
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-caps);
+    font-size: var(--text-11);
   }
 
-  nav a.active {
-    background: var(--ink);
-    color: var(--paper-strong);
-    border-color: var(--ink);
-  }
-
-  main {
-    padding-top: 2rem;
+  .site-nav a.active,
+  .site-nav a:hover {
+    color: var(--color-ink-bright);
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0.8rem color-mix(in srgb, var(--color-accent) 20%, transparent);
   }
 
   .hero {
     display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.9fr);
-    gap: 1.25rem;
+    grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.9fr);
+    gap: var(--space-6);
     align-items: start;
   }
 
   .stack {
     display: grid;
-    gap: 1rem;
-  }
-
-  .panel {
-    background: rgba(255, 250, 244, 0.78);
-    border: 1px solid var(--line);
-    border-radius: 1.5rem;
-    padding: 1.25rem;
-    box-shadow: var(--shadow);
-  }
-
-  .panel h1,
-  .panel h2,
-  .panel h3 {
-    font-family: "Fraunces", serif;
-    letter-spacing: -0.03em;
-    margin-top: 0;
-  }
-
-  .panel h1 {
-    font-size: clamp(2.3rem, 5vw, 4.6rem);
-    line-height: 0.95;
-  }
-
-  .panel p,
-  .panel li {
-    line-height: 1.6;
-  }
-
-  .eyebrow {
-    margin: 0 0 0.75rem;
-    color: var(--accent-deep);
-    font-family: "IBM Plex Mono", monospace;
-    font-size: 0.82rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+    gap: var(--space-5);
   }
 
   .grid {
     display: grid;
-    gap: 1rem;
+    gap: var(--space-5);
   }
 
   .grid.two {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .list-card {
-    padding: 1rem 1.1rem;
-    border-radius: 1.15rem;
-    border: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.58);
+  .panel {
+    margin-block-end: 0;
   }
 
-  .list-card h3 {
-    margin-bottom: 0.35rem;
+  .eyebrow {
+    margin: 0 0 var(--space-4_5) 0;
+    font-family: var(--font-family-display);
+    font-size: var(--text-11);
+    color: var(--color-accent);
+    letter-spacing: var(--letter-spacing-capsWide);
+    text-transform: uppercase;
   }
 
-  .list-card p {
-    margin: 0;
-    color: var(--muted);
+  .muted,
+  .brand-subline,
+  .site-footer {
+    color: var(--color-ink-dim);
+  }
+
+  .panel h1,
+  .panel h2,
+  .panel h3 {
+    margin: 0 0 var(--space-4);
+    font-family: var(--font-family-body);
+    font-size: var(--text-32);
+    line-height: var(--line-height-tight);
+    color: var(--color-ink-bright);
+  }
+
+  .panel h1 {
+    font-size: clamp(2.2rem, 6vw, 4.2rem);
+  }
+
+  .panel p,
+  .panel li {
+    color: var(--color-ink);
+    line-height: var(--line-height-relaxed);
   }
 
   .prose :first-child {
     margin-top: 0;
   }
 
-  .prose a {
-    color: var(--accent-deep);
+  .prose a,
+  .site-footer a {
+    color: var(--color-accent-hot);
     text-decoration: underline;
-    text-decoration-thickness: 1px;
     text-underline-offset: 0.18em;
   }
 
-  .muted {
-    color: var(--muted);
+  .list-card {
+    display: grid;
+    gap: var(--space-2);
+    border: 1px solid var(--color-border-subtle);
+    padding: var(--space-4);
+    background: color-mix(in srgb, var(--color-bg-sunken) 84%, transparent);
+    transition: border-color 140ms ease, transform 140ms ease;
+  }
+
+  .list-card:hover {
+    border-color: var(--color-accent);
+    transform: translateY(-1px);
+  }
+
+  .list-card h3 {
+    margin: 0;
+    font-size: var(--text-20);
+  }
+
+  .list-card p {
+    margin: 0;
+    color: var(--color-ink-dim);
+  }
+
+  .activity-split {
+    display: grid;
+    gap: var(--space-5);
   }
 
   .site-footer {
-    margin-top: 2rem;
-    padding-top: 1.2rem;
-    border-top: 1px solid var(--line);
-    color: var(--muted);
+    margin-top: var(--space-10);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--color-border-subtle);
+    font-size: var(--text-14);
   }
 
-  @media (max-width: 840px) {
+  .live-feed__empty {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  @media (max-width: 64rem) {
     .site-header,
     .hero,
     .grid.two {
       grid-template-columns: 1fr;
-      display: grid;
     }
 
-    nav {
-      justify-content: start;
+    .site-nav {
+      justify-content: flex-start;
     }
   }
 </style>

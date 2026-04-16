@@ -8,26 +8,6 @@ async function main() {
   const remoteLease = ensureRemoteLease(options.branch);
 
   if (!hasWorkingTreeChanges()) {
-    if (options.closeExistingIfNoop && existingPr) {
-      closePr(
-        options.repo,
-        existingPr.number,
-        "Closing stale automaton PR because the latest run produced no repo changes.",
-      );
-      process.stdout.write(
-        `${JSON.stringify(
-          {
-            status: "closed_noop",
-            reason: "working tree clean",
-            pr_number: existingPr.number,
-            pr_url: existingPr.url,
-          },
-          null,
-          2,
-        )}\n`,
-      );
-      return;
-    }
     process.stdout.write(
       `${JSON.stringify(
         {
@@ -43,30 +23,10 @@ async function main() {
     return;
   }
 
-  run("git", ["checkout", "-B", options.branch]);
+  run("git", buildCheckoutArgs(options.branch, remoteLease));
   run("git", ["add", "-A"]);
 
   if (!hasStagedChanges()) {
-    if (options.closeExistingIfNoop && existingPr) {
-      closePr(
-        options.repo,
-        existingPr.number,
-        "Closing stale automaton PR because the latest run produced no staged changes.",
-      );
-      process.stdout.write(
-        `${JSON.stringify(
-          {
-            status: "closed_noop",
-            reason: "no staged changes",
-            pr_number: existingPr.number,
-            pr_url: existingPr.url,
-          },
-          null,
-          2,
-        )}\n`,
-      );
-      return;
-    }
     process.stdout.write(
       `${JSON.stringify(
         {
@@ -215,13 +175,14 @@ export function ensureRemoteLease(branch, runner = run) {
 }
 
 export function buildPushArgs(branch, remoteLease) {
-  const args = ["push", "-u", "origin", branch];
+  return ["push", "-u", "origin", branch];
+}
+
+export function buildCheckoutArgs(branch, remoteLease) {
   if (remoteLease) {
-    args.push(`--force-with-lease=refs/heads/${branch}:${remoteLease}`);
-  } else {
-    args.push("--force-with-lease");
+    return ["checkout", "-B", branch, `refs/remotes/origin/${branch}`];
   }
-  return args;
+  return ["checkout", "-B", branch];
 }
 
 function hasWorkingTreeChanges() {
@@ -260,18 +221,6 @@ function findExistingPr(repo, branch) {
     ]),
   );
   return listing[0];
-}
-
-function closePr(repo, number, comment) {
-  run("gh", [
-    "pr",
-    "close",
-    String(number),
-    "--repo",
-    repo,
-    "--comment",
-    comment,
-  ]);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

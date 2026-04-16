@@ -7,12 +7,14 @@ const targets = await listRepoDocs("state/targets", { limit: 64 });
 
 <BaseLayout title="Targets" description="Current target dossiers." current="targets">
   <section class="panel">
-    <p class="eyebrow">Target Universe</p>
-    <h1>Targets</h1>
-    <p class="muted">
-      Curated target dossiers that explain why a repo matters and how the
-      operator should behave there.
-    </p>
+    <div class="panel-inner">
+      <p class="eyebrow">Target Universe</p>
+      <h1>Targets</h1>
+      <p class="muted">
+        Curated target dossiers that explain why a repo matters and how the
+        operator should behave there.
+      </p>
+    </div>
   </section>
 
   <section class="grid two" style="margin-top: 1rem;">

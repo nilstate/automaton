@@ -1,7 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { prepareIssueSupervisorDecision } from "./prepare-issue-supervisor-decision.mjs";
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 test("prepareIssueSupervisorDecision starts an issue-to-pr worker only after triage approves build", () => {
   const decision = prepareIssueSupervisorDecision({
@@ -31,11 +35,13 @@ test("prepareIssueSupervisorDecision starts an issue-to-pr worker only after tri
         },
       }),
     },
-  });
+  }, { defaultRepo: "nilstate/automaton", repoRoot });
 
   assert.equal(decision.mode, "issue-to-pr");
   assert.equal(decision.supervisor_decision.should_start_worker, true);
   assert.equal(decision.supervisor_decision.worker_requests.length, 1);
+  assert.equal(decision.issue_to_pr_request.target_repo, "nilstate/automaton");
+  assert.equal(decision.issue_to_pr_request.verification_profile, "automaton.site-ci");
   assert.match(decision.comment_body, /Commence: `approve`/);
   assert.match(decision.comment_body, /This is bounded enough for one draft PR\./);
   assert.match(decision.comment_body, /Worker fanout: `1`/);
@@ -68,7 +74,7 @@ test("prepareIssueSupervisorDecision derives a single worker request when triage
         },
       }),
     },
-  });
+  }, { defaultRepo: "nilstate/automaton", repoRoot });
 
   assert.equal(decision.mode, "issue-to-pr");
   assert.equal(decision.supervisor_decision.should_start_worker, true);
@@ -76,6 +82,8 @@ test("prepareIssueSupervisorDecision derives a single worker request when triage
   assert.equal(decision.issue_to_pr_request.task_id, "issue-101");
   assert.equal(decision.issue_to_pr_request.issue_title, "README command drift");
   assert.equal(decision.issue_to_pr_request.source_id, "101");
+  assert.equal(decision.issue_to_pr_request.target_repo, "nilstate/automaton");
+  assert.equal(decision.issue_to_pr_request.verification_profile, "automaton.site-ci");
 });
 
 test("prepareIssueSupervisorDecision holds at a review comment when mutation should not start yet", () => {
@@ -102,7 +110,7 @@ test("prepareIssueSupervisorDecision holds at a review comment when mutation sho
         },
       }),
     },
-  });
+  }, { defaultRepo: "nilstate/automaton", repoRoot });
 
   assert.equal(decision.mode, "comment");
   assert.equal(decision.supervisor_decision.should_start_worker, false);
@@ -132,7 +140,7 @@ test("prepareIssueSupervisorDecision falls back to an issue comment when draft P
         },
       }),
     },
-  });
+  }, { defaultRepo: "nilstate/automaton", repoRoot });
 
   assert.equal(decision.supervisor_decision.review_target, "draft_pr");
   assert.equal(decision.supervisor_decision.comment_target, "issue");
@@ -185,7 +193,7 @@ test("prepareIssueSupervisorDecision starts a planning lane for objective-decomp
         },
       }),
     },
-  });
+  }, { defaultRepo: "nilstate/automaton", repoRoot });
 
   assert.equal(decision.mode, "plan");
   assert.equal(decision.supervisor_decision.should_start_planner, true);
@@ -209,7 +217,7 @@ test("prepareIssueSupervisorDecision stops non-mutating reply-only requests with
         },
       }),
     },
-  });
+  }, { defaultRepo: "nilstate/automaton", repoRoot });
 
   assert.equal(decision.mode, "comment");
   assert.equal(decision.supervisor_decision.action_decision, "stop");
@@ -217,7 +225,7 @@ test("prepareIssueSupervisorDecision stops non-mutating reply-only requests with
   assert.match(decision.comment_body, /Share the documented API key rotation steps\./);
 });
 
-test("prepareIssueSupervisorDecision preserves multi-worker fanout when triage approves build", () => {
+test("prepareIssueSupervisorDecision blocks out-of-scope worker fanout during prerelease v1", () => {
   const decision = prepareIssueSupervisorDecision({
     triage_report: {
       category: "bug",
@@ -253,12 +261,11 @@ test("prepareIssueSupervisorDecision preserves multi-worker fanout when triage a
         },
       ],
     },
-  });
+  }, { defaultRepo: "nilstate/automaton", repoRoot });
 
-  assert.equal(decision.mode, "issue-to-pr");
-  assert.equal(decision.supervisor_decision.should_start_worker, true);
-  assert.equal(decision.supervisor_decision.worker_requests.length, 2);
-  assert.equal(decision.supervisor_decision.worker_requests[0].worker, "issue-to-pr");
-  assert.equal(decision.supervisor_decision.worker_requests[1].issue_to_pr_request.target_repo, "acme/app");
-  assert.match(decision.comment_body, /Worker fanout: `2`/);
+  assert.equal(decision.mode, "comment");
+  assert.equal(decision.supervisor_decision.should_start_worker, false);
+  assert.equal(decision.supervisor_decision.worker_requests.length, 0);
+  assert.match(decision.comment_body, /Boundary notes:/);
+  assert.match(decision.comment_body, /outside prerelease v1 scope/);
 });

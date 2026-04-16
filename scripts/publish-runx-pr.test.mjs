@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { buildPushArgs, ensureRemoteLease } from "./publish-runx-pr.mjs";
+import { buildCheckoutArgs, buildPushArgs, ensureRemoteLease } from "./publish-runx-pr.mjs";
 
 test("ensureRemoteLease fetches the remote automation branch before pushing", () => {
   const calls = [];
@@ -49,22 +49,37 @@ test("ensureRemoteLease returns null when the remote branch does not exist", () 
   assert.deepEqual(calls, [["git", ["ls-remote", "--heads", "origin", "runx/sourcey-refresh"]]]);
 });
 
-test("buildPushArgs uses an explicit lease when a remote tip is known", () => {
+test("buildCheckoutArgs reuses the remote branch tip without rewriting origin", () => {
+  assert.deepEqual(buildCheckoutArgs("runx/sourcey-refresh", "abc123"), [
+    "checkout",
+    "-B",
+    "runx/sourcey-refresh",
+    "refs/remotes/origin/runx/sourcey-refresh",
+  ]);
+});
+
+test("buildCheckoutArgs creates a fresh branch when no remote tip exists", () => {
+  assert.deepEqual(buildCheckoutArgs("runx/sourcey-refresh", null), [
+    "checkout",
+    "-B",
+    "runx/sourcey-refresh",
+  ]);
+});
+
+test("buildPushArgs uses a non-destructive fast-forward push when a remote tip is known", () => {
   assert.deepEqual(buildPushArgs("runx/sourcey-refresh", "abc123"), [
     "push",
     "-u",
     "origin",
     "runx/sourcey-refresh",
-    "--force-with-lease=refs/heads/runx/sourcey-refresh:abc123",
   ]);
 });
 
-test("buildPushArgs falls back to plain force-with-lease for new branches", () => {
+test("buildPushArgs uses the same non-destructive push shape for new branches", () => {
   assert.deepEqual(buildPushArgs("runx/sourcey-refresh", null), [
     "push",
     "-u",
     "origin",
     "runx/sourcey-refresh",
-    "--force-with-lease",
   ]);
 });
