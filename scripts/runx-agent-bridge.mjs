@@ -278,65 +278,20 @@ async function resolveCognitiveWork({
   let lastTransportError;
   const maxAttempts = Number(process.env.RUNX_CALLER_MAX_ATTEMPTS ?? "2");
   const requestTimeoutMs = Number(process.env.RUNX_CALLER_REQUEST_TIMEOUT_MS ?? "1200000");
+  const maxToolCalls = Number(process.env.RUNX_CALLER_MAX_TOOL_CALLS ?? "4");
 
+  attemptLoop:
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const attemptStartedAt = new Date().toISOString();
     const messages = buildInputMessages(request, expectedOutputs, previousFailure, contextText);
-    const payload = buildResponsesPayload({ model, messages, reasoningEffort });
 
-    let response;
-    let requestPayload = payload;
-    let requestApi = "responses";
-    let initialFailure;
-    try {
-      response = await runProviderRequestWithTrace({
-        requestId,
-        attempt,
-        maxAttempts,
-        requestApi,
-        traceDir,
-        startedAt: attemptStartedAt,
-        timeoutMs: requestTimeoutMs,
-        expectedOutputs,
-        requestPayload: payload,
-        url: "https://api.openai.com/v1/responses",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          "X-Client-Request-Id": `${requestId}-${attempt}`.slice(0, 128),
-        },
-      });
-    } catch (error) {
-      lastTransportError = error;
-      await writeAttemptTraceFile({
-        traceDir,
-        requestId,
-        attempt,
-        requestApi,
-        request: payload,
-        response: null,
-        rawResponse: null,
-        transportError: serializeError(error),
-      });
-      if (attempt < maxAttempts && isRetryableTransportError(error)) {
-        await sleep(backoffDelayMs(attempt));
-        continue;
-      }
-      throw error;
-    }
+    for (let toolTurn = 1; toolTurn <= maxToolCalls + 1; toolTurn += 1) {
+      const payload = buildResponsesPayload({ model, messages, reasoningEffort });
 
-    let raw = response.body;
-    let parsed = safeJsonParse(raw);
-
-    if (shouldFallbackToChatCompletions({ response, parsed })) {
-      initialFailure = {
-        api: requestApi,
-        statusCode: response.statusCode,
-        statusMessage: response.statusMessage,
-        raw,
-      };
-      requestApi = "chat_completions";
-      requestPayload = buildChatCompletionsPayload({ model, messages });
+      let response;
+      let requestPayload = payload;
+      let requestApi = "responses";
+      let initialFailure;
       try {
         response = await runProviderRequestWithTrace({
           requestId,
@@ -347,12 +302,12 @@ async function resolveCognitiveWork({
           startedAt: attemptStartedAt,
           timeoutMs: requestTimeoutMs,
           expectedOutputs,
-          requestPayload,
-          url: "https://api.openai.com/v1/chat/completions",
+          requestPayload: payload,
+          url: "https://api.openai.com/v1/responses",
           headers: {
             Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
-            "X-Client-Request-Id": `${requestId}-${attempt}-fallback`.slice(0, 128),
+            "X-Client-Request-Id": `${requestId}-${attempt}`.slice(0, 128),
           },
         });
       } catch (error) {
@@ -361,91 +316,87 @@ async function resolveCognitiveWork({
           traceDir,
           requestId,
           attempt,
+          sequence: toolTurn,
           requestApi,
-          request: requestPayload,
+          request: payload,
           response: null,
           rawResponse: null,
-          initialFailure,
           transportError: serializeError(error),
         });
         if (attempt < maxAttempts && isRetryableTransportError(error)) {
           await sleep(backoffDelayMs(attempt));
-          continue;
+          continue attemptLoop;
         }
         throw error;
       }
-      raw = response.body;
-      parsed = safeJsonParse(raw);
-    }
 
-    await writeAttemptTraceFile({
-      traceDir,
-      requestId,
-      attempt,
-      requestApi,
-      request: requestPayload,
-      response: parsed,
-      rawResponse: raw,
-      initialFailure,
-    });
+      let raw = response.body;
+      let parsed = safeJsonParse(raw);
 
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      await writeLiveTraceState({
-        traceDir,
-        requestId,
-        snapshot: buildLiveTraceState({
-          requestId,
-          attempt,
-          maxAttempts,
-          requestApi,
-          status: "http_error",
-          timeoutMs: requestTimeoutMs,
-          startedAt: attemptStartedAt,
-          heartbeatAt: new Date().toISOString(),
-          expectedOutputs,
-          note: truncate(raw, 800),
-          responseStatus: response.statusCode,
-        }),
-      });
-      throw new Error(
-        `OpenAI request failed: ${response.statusCode} ${response.statusMessage}\n${truncate(raw, 4000)}`,
-      );
-    }
-
-    const outputTexts = extractOutputTextCandidates(parsed);
-    if (outputTexts.length === 0) {
-      previousFailure = `The response did not include output_text. Raw response: ${truncate(raw, 1200)}`;
-      const liveStatus = attempt < maxAttempts ? "retrying_invalid_response" : "failed";
-      await writeLiveTraceState({
-        traceDir,
-        requestId,
-        snapshot: buildLiveTraceState({
-          requestId,
-          attempt,
-          maxAttempts,
-          requestApi,
-          status: liveStatus,
-          timeoutMs: requestTimeoutMs,
-          startedAt: attemptStartedAt,
-          heartbeatAt: new Date().toISOString(),
-          expectedOutputs,
-          note: previousFailure,
-        }),
-      });
-      continue;
-    }
-
-    let candidateFailure;
-    for (const outputText of outputTexts) {
-      const parsedOutput = safeJsonParse(outputText);
-      if (!isPlainObject(parsedOutput)) {
-        candidateFailure =
-          `The response was not a JSON object. Raw output text: ${truncate(outputText, 1200)}`;
-        continue;
+      if (shouldFallbackToChatCompletions({ response, parsed })) {
+        initialFailure = {
+          api: requestApi,
+          statusCode: response.statusCode,
+          statusMessage: response.statusMessage,
+          raw,
+        };
+        requestApi = "chat_completions";
+        requestPayload = buildChatCompletionsPayload({ model, messages });
+        try {
+          response = await runProviderRequestWithTrace({
+            requestId,
+            attempt,
+            maxAttempts,
+            requestApi,
+            traceDir,
+            startedAt: attemptStartedAt,
+            timeoutMs: requestTimeoutMs,
+            expectedOutputs,
+            requestPayload,
+            url: "https://api.openai.com/v1/chat/completions",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+              "X-Client-Request-Id": `${requestId}-${attempt}-fallback`.slice(0, 128),
+            },
+          });
+        } catch (error) {
+          lastTransportError = error;
+          await writeAttemptTraceFile({
+            traceDir,
+            requestId,
+            attempt,
+            sequence: toolTurn,
+            requestApi,
+            request: requestPayload,
+            response: null,
+            rawResponse: null,
+            initialFailure,
+            transportError: serializeError(error),
+          });
+          if (attempt < maxAttempts && isRetryableTransportError(error)) {
+            await sleep(backoffDelayMs(attempt));
+            continue attemptLoop;
+          }
+          throw error;
+        }
+        raw = response.body;
+        parsed = safeJsonParse(raw);
       }
 
-      const validationError = validateResolution(parsedOutput, expectedOutputs);
-      if (!validationError) {
+      await writeAttemptTraceFile({
+        traceDir,
+        requestId,
+        attempt,
+        sequence: toolTurn,
+        requestApi,
+        request: requestPayload,
+        response: parsed,
+        rawResponse: raw,
+        initialFailure,
+      });
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
         await writeLiveTraceState({
           traceDir,
           requestId,
@@ -454,21 +405,105 @@ async function resolveCognitiveWork({
             attempt,
             maxAttempts,
             requestApi,
-            status: "completed",
+            status: "http_error",
             timeoutMs: requestTimeoutMs,
             startedAt: attemptStartedAt,
             heartbeatAt: new Date().toISOString(),
             expectedOutputs,
-            note: "resolution accepted",
+            note: truncate(raw, 800),
+            responseStatus: response.statusCode,
           }),
         });
-        return parsedOutput;
+        throw new Error(
+          `OpenAI request failed: ${response.statusCode} ${response.statusMessage}\n${truncate(raw, 4000)}`,
+        );
       }
 
-      candidateFailure = validationError;
+      const toolRequests = extractAllowedToolRequests(parsed, request.work.envelope.allowed_tools);
+      if (toolRequests.length > 0) {
+        if (toolTurn > maxToolCalls) {
+          previousFailure =
+            `The response requested another tool call after exhausting ${maxToolCalls} allowed tool round(s). Return the final JSON object instead.`;
+          break;
+        }
+
+        for (const toolRequest of toolRequests) {
+          const toolResult = await executeAllowedToolRequest({
+            toolRequest,
+            request,
+          });
+          messages.push({
+            role: "assistant",
+            content: toolRequest.raw,
+          });
+          messages.push({
+            role: "user",
+            content: buildToolResultFollowupMessage(toolResult),
+          });
+        }
+
+        await writeLiveTraceState({
+          traceDir,
+          requestId,
+          snapshot: buildLiveTraceState({
+            requestId,
+            attempt,
+            maxAttempts,
+            requestApi,
+            status: "tool_result",
+            timeoutMs: requestTimeoutMs,
+            startedAt: attemptStartedAt,
+            heartbeatAt: new Date().toISOString(),
+            expectedOutputs,
+            note: `executed ${toolRequests.length} allowed tool request(s)`,
+          }),
+        });
+        continue;
+      }
+
+      const outputTexts = extractOutputTextCandidates(parsed);
+      if (outputTexts.length === 0) {
+        previousFailure = `The response did not include output_text. Raw response: ${truncate(raw, 1200)}`;
+        break;
+      }
+
+      let candidateFailure;
+      for (const outputText of outputTexts) {
+        const parsedOutput = safeJsonParse(outputText);
+        if (!isPlainObject(parsedOutput)) {
+          candidateFailure =
+            `The response was not a JSON object. Raw output text: ${truncate(outputText, 1200)}`;
+          continue;
+        }
+
+        const validationError = validateResolution(parsedOutput, expectedOutputs);
+        if (!validationError) {
+          await writeLiveTraceState({
+            traceDir,
+            requestId,
+            snapshot: buildLiveTraceState({
+              requestId,
+              attempt,
+              maxAttempts,
+              requestApi,
+              status: "completed",
+              timeoutMs: requestTimeoutMs,
+              startedAt: attemptStartedAt,
+              heartbeatAt: new Date().toISOString(),
+              expectedOutputs,
+              note: "resolution accepted",
+            }),
+          });
+          return parsedOutput;
+        }
+
+        candidateFailure = validationError;
+      }
+
+      previousFailure = candidateFailure;
+      break;
     }
 
-    previousFailure = candidateFailure;
     const liveStatus = attempt < maxAttempts ? "retrying_invalid_response" : "failed";
     await writeLiveTraceState({
       traceDir,
@@ -477,7 +512,7 @@ async function resolveCognitiveWork({
         requestId,
         attempt,
         maxAttempts,
-        requestApi,
+        requestApi: "responses",
         status: liveStatus,
         timeoutMs: requestTimeoutMs,
         startedAt: attemptStartedAt,
@@ -560,6 +595,9 @@ function postJson(url, { headers, body, timeoutMs }) {
 
 export function buildInputMessages(request, expectedOutputs, previousFailure, contextText) {
   const requiredKeys = Object.keys(expectedOutputs);
+  const allowedTools = Array.isArray(request?.work?.envelope?.allowed_tools)
+    ? request.work.envelope.allowed_tools.filter((value) => typeof value === "string" && value.trim().length > 0)
+    : [];
   const lines = [
     "You are the external caller for a governed runx skill boundary.",
     "Return exactly one JSON object.",
@@ -575,6 +613,17 @@ export function buildInputMessages(request, expectedOutputs, previousFailure, co
       `Expected top-level types: ${requiredKeys
         .map((key) => `${key}=${expectedOutputs[key]}`)
         .join(", ")}.`,
+    );
+  }
+  if (allowedTools.length > 0) {
+    lines.push(
+      `Allowed read-only tools for this request: ${allowedTools.join(", ")}.`,
+    );
+    lines.push(
+      'If you need one of those tools before the final answer, return exactly one JSON object of the form {"tool":"<allowed tool>","args":{...}}.',
+    );
+    lines.push(
+      "Do not combine a tool request with the final answer in the same JSON object.",
     );
   }
 
@@ -736,6 +785,213 @@ export function extractOutputTextCandidates(response) {
     }
   }
   return candidates;
+}
+
+export function extractAssistantMessageBlocks(response) {
+  const blocks = [];
+  const outputItems = Array.isArray(response?.output) ? response.output : [];
+  for (const item of outputItems) {
+    if (item?.type !== "message" || item?.role !== "assistant") {
+      continue;
+    }
+    const content = Array.isArray(item.content) ? item.content : [];
+    for (const block of content) {
+      if (typeof block?.text !== "string" || block.text.trim() === "") {
+        continue;
+      }
+      blocks.push({
+        phase: typeof item.phase === "string" ? item.phase : null,
+        text: block.text.trim(),
+      });
+    }
+  }
+
+  if (blocks.length > 0) {
+    return blocks;
+  }
+
+  if (typeof response?.output_text === "string" && response.output_text.trim()) {
+    blocks.push({
+      phase: null,
+      text: response.output_text.trim(),
+    });
+  }
+
+  const choices = Array.isArray(response?.choices) ? response.choices : [];
+  for (const choice of choices) {
+    const content = choice?.message?.content;
+    if (typeof content === "string" && content.trim()) {
+      blocks.push({
+        phase: null,
+        text: content.trim(),
+      });
+    }
+  }
+
+  return blocks;
+}
+
+export function parseToolRequestCandidate(text) {
+  const parsed = safeJsonParse(text);
+  if (!isPlainObject(parsed)) {
+    return null;
+  }
+  const tool = typeof parsed.tool === "string" ? parsed.tool.trim() : "";
+  if (!tool) {
+    return null;
+  }
+  return {
+    tool,
+    args: isPlainObject(parsed.args) ? parsed.args : {},
+    raw: text,
+  };
+}
+
+export function extractAllowedToolRequests(response, allowedTools) {
+  const allowed = new Set(
+    (Array.isArray(allowedTools) ? allowedTools : [])
+      .filter((value) => typeof value === "string" && value.trim().length > 0),
+  );
+  if (allowed.size === 0) {
+    return [];
+  }
+  return extractAssistantMessageBlocks(response)
+    .map((message) => {
+      const parsed = parseToolRequestCandidate(message.text);
+      if (!parsed || !allowed.has(parsed.tool)) {
+        return null;
+      }
+      return {
+        ...parsed,
+        phase: message.phase,
+      };
+    })
+    .filter(Boolean);
+}
+
+export async function executeAllowedToolRequest({ toolRequest, request }) {
+  switch (toolRequest.tool) {
+    case "fs.read":
+      return await executeFsReadTool(toolRequest.args, request);
+    case "git.status":
+      return await executeGitStatusTool(toolRequest.args, request);
+    default:
+      return {
+        tool: toolRequest.tool,
+        ok: false,
+        error: `Tool '${toolRequest.tool}' is not supported by this bridge.`,
+      };
+  }
+}
+
+async function executeFsReadTool(args, request) {
+  const requestedPath = typeof args?.path === "string" && args.path.trim().length > 0
+    ? args.path.trim()
+    : null;
+  if (!requestedPath) {
+    return {
+      tool: "fs.read",
+      ok: false,
+      error: "fs.read requires a non-empty string path.",
+    };
+  }
+
+  const defaultRepoRoot = resolveDefaultToolRepoRoot(request);
+  const repoRoot = typeof args?.repo_root === "string" && args.repo_root.trim().length > 0
+    ? args.repo_root.trim()
+    : defaultRepoRoot;
+  const absolutePath = resolveToolPath(requestedPath, repoRoot);
+  try {
+    const contents = await readFile(absolutePath, "utf8");
+    const maxChars = Number(process.env.RUNX_CALLER_MAX_FILE_CHARS ?? "200000");
+    const truncated = contents.length > maxChars;
+    return {
+      tool: "fs.read",
+      ok: true,
+      data: {
+        path: requestedPath,
+        absolute_path: absolutePath,
+        repo_root: repoRoot ?? null,
+        contents: truncated ? `${contents.slice(0, maxChars)}\n...[truncated]` : contents,
+        truncated,
+      },
+    };
+  } catch (error) {
+    return {
+      tool: "fs.read",
+      ok: false,
+      error: error?.message ?? String(error),
+      data: {
+        path: requestedPath,
+        absolute_path: absolutePath,
+        repo_root: repoRoot ?? null,
+      },
+    };
+  }
+}
+
+async function executeGitStatusTool(args, request) {
+  const repoRoot = typeof args?.repo_root === "string" && args.repo_root.trim().length > 0
+    ? args.repo_root.trim()
+    : resolveDefaultToolRepoRoot(request) ?? process.cwd();
+  try {
+    const { stdout, stderr } = await execFileAsync("git", ["status", "--short", "--branch"], {
+      cwd: path.resolve(repoRoot),
+      env: process.env,
+      maxBuffer: 5 * 1024 * 1024,
+    });
+    return {
+      tool: "git.status",
+      ok: true,
+      data: {
+        repo_root: path.resolve(repoRoot),
+        stdout: stdout.trimEnd(),
+        stderr: stderr.trimEnd(),
+        exit_code: 0,
+      },
+    };
+  } catch (error) {
+    return {
+      tool: "git.status",
+      ok: false,
+      error: error?.message ?? String(error),
+      data: {
+        repo_root: path.resolve(repoRoot),
+        stdout: String(error?.stdout ?? "").trimEnd(),
+        stderr: String(error?.stderr ?? "").trimEnd(),
+        exit_code: Number.isInteger(error?.code) ? error.code : 1,
+      },
+    };
+  }
+}
+
+function resolveDefaultToolRepoRoot(request) {
+  const fixture = request?.work?.envelope?.inputs?.fixture;
+  if (typeof fixture === "string" && fixture.trim().length > 0) {
+    return fixture.trim();
+  }
+  return null;
+}
+
+function resolveToolPath(requestedPath, repoRoot) {
+  if (path.isAbsolute(requestedPath)) {
+    return path.resolve(requestedPath);
+  }
+  if (typeof repoRoot === "string" && repoRoot.trim().length > 0) {
+    return path.resolve(repoRoot, requestedPath);
+  }
+  return path.resolve(requestedPath);
+}
+
+function buildToolResultFollowupMessage(toolResult) {
+  return [
+    "Allowed tool result for the previous request.",
+    "Use this as fresh current context.",
+    'If you still need another allowed tool call, return exactly one JSON object of the form {"tool":"<allowed tool>","args":{...}}.',
+    "Otherwise return the final answer JSON object with the required top-level keys only.",
+    "",
+    JSON.stringify({ tool_result: toolResult }, null, 2),
+  ].join("\n");
 }
 
 function compactAnswersPayload(answers, approvals) {
@@ -915,6 +1171,7 @@ async function writeAttemptTraceFile({
   traceDir,
   requestId,
   attempt,
+  sequence = 1,
   requestApi,
   request,
   response,
@@ -922,11 +1179,15 @@ async function writeAttemptTraceFile({
   initialFailure = null,
   transportError = null,
 }) {
+  const fileName = sequence > 1
+    ? `${requestId}-attempt-${attempt}-step-${sequence}.json`
+    : `${requestId}-attempt-${attempt}.json`;
   await writeFile(
-    path.join(traceDir, `${requestId}-attempt-${attempt}.json`),
+    path.join(traceDir, fileName),
     `${JSON.stringify(
       {
         request_api: requestApi,
+        sequence,
         request,
         response,
         raw_response: rawResponse,
