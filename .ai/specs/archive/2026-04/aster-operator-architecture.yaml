@@ -1,8 +1,8 @@
 spec_version: "1.1"
 task_id: "aster-operator-architecture"
 created: "2026-04-16T12:00:00Z"
-updated: "2026-04-16T12:00:00Z"
-status: "draft"
+updated: "2026-04-20T10:43:39Z"
+status: "completed"
 
 task:
   title: "Define aster operator architecture and ownership"
@@ -66,19 +66,24 @@ task:
     definition_of_done:
       - id: "dod1"
         description: "Architecture docs explicitly separate generic runtime primitives from aster operator semantics."
-        status: "pending"
+        status: "done"
+        checked_at: "2026-04-20T10:37:32Z"
       - id: "dod2"
         description: "The plan names the separate aster public face and its content ownership."
-        status: "pending"
+        status: "done"
+        checked_at: "2026-04-20T10:37:32Z"
       - id: "dod3"
         description: "Lane contracts specify artifact, approval, and memory effect."
-        status: "pending"
+        status: "done"
+        checked_at: "2026-04-20T10:37:32Z"
       - id: "dod4"
         description: "The plan acknowledges the current docs/.artifacts reality and names the migration path."
-        status: "pending"
+        status: "done"
+        checked_at: "2026-04-20T10:37:32Z"
       - id: "dod5"
         description: "The plan defines promotion rules and concurrent state update behavior."
-        status: "pending"
+        status: "done"
+        checked_at: "2026-04-20T10:37:32Z"
     validation:
       - id: "v1"
         type: "documentation"
@@ -98,6 +103,20 @@ planning_log:
       Created after correcting the prior boundary mistake. This spec makes the
       architecture explicit before any new implementation work resumes.
 
+  - timestamp: "2026-04-20T10:36:30Z"
+    actor: "cli"
+    summary: "Spec approved"
+  - timestamp: "2026-04-20T10:36:30Z"
+    actor: "cli"
+    summary: "Execution started"
+  - timestamp: "2026-04-20T10:37:32Z"
+    actor: "codex"
+    summary: >
+      Verified the documentation acceptance criteria manually after scafld exec
+      misclassified successful `documentation` command matches as failures.
+  - timestamp: "2026-04-20T10:43:39Z"
+    actor: "cli"
+    summary: "Spec completed"
 phases:
   - id: "phase1"
     name: "Boundary And Topology"
@@ -120,7 +139,12 @@ phases:
         description: "Boundary language is present and explicit."
         command: "rg -n \"runx may host the machine|aster owns the mind\" docs/architecture.md"
         expected: "boundary language present"
-    status: "pending"
+        result:
+          status: "pass"
+          timestamp: "2026-04-20T10:36:41Z"
+          output: "68:In plain language: runx may host the machine and aster owns the mind."
+    summary: "Verified the hard boundary language, repo topology, and public-face split."
+    status: "completed"
   - id: "phase2"
     name: "Lane Contracts"
     objective: "Turn the live lanes into explicit contracts rather than implied workflow behavior."
@@ -137,7 +161,12 @@ phases:
         description: "Lane contract table is present."
         command: "rg -n \"\\| lane \\| purpose \\| input \\| output \\| public artifact \\| approval mode \\| feed eligible \\| memory effect \\|\" docs/architecture.md"
         expected: "lane table present"
-    status: "pending"
+        result:
+          status: "pass"
+          timestamp: "2026-04-20T10:36:41Z"
+          output: "215:| lane | purpose | input | output | public artifact | approval mode | feed eligible | memory effect |"
+    summary: "Verified the lane contract matrix covers purpose, artifact, approval mode, feed eligibility, and memory effect."
+    status: "completed"
   - id: "phase3"
     name: "Data Ownership"
     objective: "Define canonical, derived, and public classes so future memory work has a stable contract."
@@ -154,7 +183,12 @@ phases:
         description: "Data ownership table is present."
         command: "rg -n \"Canonical, Derived, Public|canonical evidence|operator projections\" docs/architecture.md"
         expected: "ownership sections present"
-    status: "pending"
+        result:
+          status: "pass"
+          timestamp: "2026-04-20T10:36:41Z"
+          output: "231:## Canonical, Derived, Public 237:| canonical evidence | receipts, approvals, artifacts, workflow packets | `runx` or the lane producer | receipt/artifact store | append-only | 240:| operator projections | targets, opportunities, priorities, capabilities | `aster` | `state/` first, store later | revisable |"
+    summary: "Verified the canonical, derived, and public ownership table plus rebuildable derived-context rule."
+    status: "completed"
   - id: "phase4"
     name: "Migration Contract"
     objective: "Define how the current repo shape converges on the target operator shape."
@@ -172,7 +206,12 @@ phases:
         description: "Migration sections are present."
         command: "rg -n \"Current Reality|Repo Migration|Sourcey is optional tooling|\\.artifacts/\" docs/architecture.md"
         expected: "migration language present"
-    status: "pending"
+        result:
+          status: "pass"
+          timestamp: "2026-04-20T10:36:42Z"
+          output: "85:## Current Reality 91:- `.artifacts/proving-ground/` and other `.artifacts/` trees are the current layer-0 evidence surface 129:- Sourcey is optional tooling, not part of the 10/10 architecture 194:## Repo Migration"
+    summary: "Verified the current-reality and repo-migration sections describe the move from docs and artifacts to doctrine, state, history, reflections, and site."
+    status: "completed"
   - id: "phase5"
     name: "Core Update Rules"
     objective: "Define how doctrine, state, history, reflections, and site may be updated."
@@ -188,9 +227,14 @@ phases:
       - id: "ac5_1"
         type: "documentation"
         description: "Core update rules are present."
-        command: "rg -n \"Aster Core Update Rules|### `doctrine/`|### `state/`|### `history/`|### `reflections/`|### `site/`\" docs/architecture.md"
+        command: "rg -n 'Aster Core Update Rules|### `doctrine/`|### `state/`|### `history/`|### `reflections/`|### `site/`' docs/architecture.md"
         expected: "core update rules present"
-    status: "pending"
+        result:
+          status: "pass"
+          timestamp: "2026-04-20T10:36:42Z"
+          output: "601:## Aster Core Update Rules 605:### `doctrine/` 611:### `state/` 621:### `history/` 629:### `reflections/` 637:### `site/`"
+    summary: "Verified explicit filesystem update rules for doctrine, state, history, reflections, and site."
+    status: "completed"
   - id: "phase6"
     name: "Promotion And Concurrency"
     objective: "Define promotion rules and conflict handling for aster-managed state."
@@ -207,7 +251,12 @@ phases:
         description: "Promotion and concurrency rules are present."
         command: "rg -n \"Promotion Rules|optimistic concurrency|conflicting writers must fail closed\" docs/architecture.md"
         expected: "promotion and concurrency rules present"
-    status: "pending"
+        result:
+          status: "pass"
+          timestamp: "2026-04-20T10:36:42Z"
+          output: "617:- concurrent state updates must use optimistic concurrency against the last 619:- conflicting writers must fail closed and emit a reflection or correction path 644:## Promotion Rules"
+    summary: "Verified promotion ordering plus optimistic-concurrency and fail-closed conflict rules."
+    status: "completed"
 
 rollback:
   strategy: "per_phase"
@@ -218,3 +267,35 @@ rollback:
     phase4: "git checkout HEAD -- docs/architecture.md"
     phase5: "git checkout HEAD -- docs/architecture.md"
     phase6: "git checkout HEAD -- docs/architecture.md"
+
+review:
+  timestamp: "2026-04-20T10:41:52Z"
+  verdict: "pass_with_issues"
+  review_rounds: 1
+  reviewer_mode: "executor"
+  reviewer_session: ""
+  round_status: "completed"
+  override_applied: false
+  override_reason: null
+  override_confirmed_at: null
+  passes:
+    - id: spec_compliance
+      result: "pass"
+    - id: scope_drift
+      result: "pass"
+    - id: regression_hunt
+      result: "pass"
+    - id: convention_check
+      result: "pass"
+    - id: dark_patterns
+      result: "pass_with_issues"
+  blocking_count: 0
+  non_blocking_count: 1
+self_eval:
+  completeness: 2
+  architecture_fidelity: 3
+  spec_alignment: 2
+  validation_depth: 1
+  total: 8
+  notes: "The architecture documentation landed cleanly and the remaining issue is the unrelated repo check script's stale active-spec requirement."
+  second_pass_performed: false

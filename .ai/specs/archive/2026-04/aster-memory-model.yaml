@@ -1,8 +1,8 @@
 spec_version: "1.1"
 task_id: "aster-memory-model"
 created: "2026-04-16T12:00:00Z"
-updated: "2026-04-16T12:00:00Z"
-status: "draft"
+updated: "2026-04-20T10:43:39Z"
+status: "completed"
 
 task:
   title: "Define aster memory model and SQL threshold"
@@ -64,22 +64,28 @@ task:
     definition_of_done:
       - id: "dod1"
         description: "The plan explains how aster can operate before SQL."
-        status: "pending"
+        status: "done"
+        checked_at: "2026-04-20T10:37:32Z"
       - id: "dod2"
         description: "The plan defines generic hosted memory primitives and keeps operator semantics outside runx."
-        status: "pending"
+        status: "done"
+        checked_at: "2026-04-20T10:37:32Z"
       - id: "dod3"
         description: "The plan defines when SQL becomes necessary."
-        status: "pending"
+        status: "done"
+        checked_at: "2026-04-20T10:37:32Z"
       - id: "dod4"
         description: "The plan explicitly anchors layer 0 in current .artifacts and receipts."
-        status: "pending"
+        status: "done"
+        checked_at: "2026-04-20T10:37:32Z"
       - id: "dod5"
         description: "The plan defines subject identity, audit/redaction, and rebuild rules."
-        status: "pending"
+        status: "done"
+        checked_at: "2026-04-20T10:37:32Z"
       - id: "dod6"
         description: "The plan defines the memory API contract, retention defaults, and recovery drills."
-        status: "pending"
+        status: "done"
+        checked_at: "2026-04-20T10:37:32Z"
     validation:
       - id: "v1"
         type: "documentation"
@@ -100,6 +106,20 @@ planning_log:
       SQL or can manage its own context first, and how hosted generic memory
       fits without crossing the boundary.
 
+  - timestamp: "2026-04-20T10:36:31Z"
+    actor: "cli"
+    summary: "Spec approved"
+  - timestamp: "2026-04-20T10:36:31Z"
+    actor: "cli"
+    summary: "Execution started"
+  - timestamp: "2026-04-20T10:37:32Z"
+    actor: "codex"
+    summary: >
+      Verified the documentation acceptance criteria manually after scafld exec
+      reported false negatives for successful documentation checks.
+  - timestamp: "2026-04-20T10:43:39Z"
+    actor: "cli"
+    summary: "Spec completed"
 phases:
   - id: "phase1"
     name: "Layered Memory"
@@ -117,7 +137,12 @@ phases:
         description: "Memory layers are enumerated and layer 0 is grounded in artifacts."
         command: "rg -n \"Layer 0|\\.artifacts/|Layer 1|Layer 2|Layer 3|Layer 4\" docs/architecture.md"
         expected: "memory layers listed"
-    status: "pending"
+        result:
+          status: "pass"
+          timestamp: "2026-04-20T10:36:42Z"
+          output: "286:### Layer 0: Receipt-grounded context 297:### Layer 1: Git-native operator memory 309:### Layer 2: Derived local working memory 320:### Layer 3: Generic hosted memory 477:### Layer 4: Operator projections"
+    summary: "Verified the layered memory progression and the explicit layer-0 grounding in current artifacts and receipts."
+    status: "completed"
   - id: "phase2"
     name: "SQL Threshold"
     objective: "Make the decision to add SQL explicit and evidence-based."
@@ -134,7 +159,12 @@ phases:
         description: "SQL criteria are present."
         command: "rg -n \"shared context across concurrent cycles|cooldowns, dedupe, retry budgets|fast selection over many targets\" docs/architecture.md"
         expected: "SQL criteria present"
-    status: "pending"
+        result:
+          status: "pass"
+          timestamp: "2026-04-20T10:36:42Z"
+          output: "507:- shared context across concurrent cycles 509:- cooldowns, dedupe, retry budgets, and ranking 511:- fast selection over many targets and many past outcomes"
+    summary: "Verified the explicit SQL pressure points for concurrency, retrieval, dedupe, and ranking."
+    status: "completed"
   - id: "phase3"
     name: "Context Assembly Contract"
     objective: "Define how future lanes assemble context from receipts, memory, and repo state."
@@ -151,7 +181,12 @@ phases:
         description: "Context assembly section is present."
         command: "rg -n \"Context Assembly|write receipts first|write reflection and projection updates second\" docs/architecture.md"
         expected: "context assembly section present"
-    status: "pending"
+        result:
+          status: "pass"
+          timestamp: "2026-04-20T10:36:42Z"
+          output: "531:## Context Assembly 540:6. write receipts first 541:7. write reflection and projection updates second"
+    summary: "Verified the context assembly order from repo state and receipts through later projection updates."
+    status: "completed"
   - id: "phase4"
     name: "Memory Governance"
     objective: "Define subject identity, audit, redaction, rebuild, and public export rules."
@@ -169,7 +204,12 @@ phases:
         description: "Memory governance sections are present."
         command: "rg -n \"Subject Identity|Provenance, Redaction, Audit|Rebuild And Compaction|Public Snapshot Export\" docs/architecture.md"
         expected: "memory governance sections present"
-    status: "pending"
+        result:
+          status: "pass"
+          timestamp: "2026-04-20T10:36:42Z"
+          output: "251:## Subject Identity 413:## Provenance, Redaction, Audit 425:## Rebuild And Compaction 439:## Public Snapshot Export"
+    summary: "Verified subject identity, provenance, redaction, rebuild, and public snapshot export governance."
+    status: "completed"
   - id: "phase5"
     name: "API And Retention"
     objective: "Define the memory API contract, retention defaults, and recovery behavior."
@@ -186,7 +226,12 @@ phases:
         description: "Memory API and retention sections are present."
         command: "rg -n \"Memory API Contract|Retention Policy|Recovery Drills\" docs/architecture.md"
         expected: "memory API and retention sections present"
-    status: "pending"
+        result:
+          status: "pass"
+          timestamp: "2026-04-20T10:36:42Z"
+          output: "458:## Memory API Contract 518:## Retention Policy 711:## Recovery Drills"
+    summary: "Verified the memory API contract, retention defaults, and recovery-drill coverage."
+    status: "completed"
 
 rollback:
   strategy: "per_phase"
@@ -196,3 +241,35 @@ rollback:
     phase3: "git checkout HEAD -- docs/architecture.md"
     phase4: "git checkout HEAD -- docs/architecture.md"
     phase5: "git checkout HEAD -- docs/architecture.md"
+
+review:
+  timestamp: "2026-04-20T10:41:54Z"
+  verdict: "pass_with_issues"
+  review_rounds: 1
+  reviewer_mode: "executor"
+  reviewer_session: ""
+  round_status: "completed"
+  override_applied: false
+  override_reason: null
+  override_confirmed_at: null
+  passes:
+    - id: spec_compliance
+      result: "pass"
+    - id: scope_drift
+      result: "pass"
+    - id: regression_hunt
+      result: "pass"
+    - id: convention_check
+      result: "pass"
+    - id: dark_patterns
+      result: "pass_with_issues"
+  blocking_count: 0
+  non_blocking_count: 1
+self_eval:
+  completeness: 2
+  architecture_fidelity: 3
+  spec_alignment: 2
+  validation_depth: 1
+  total: 8
+  notes: "The memory-model documentation is fully represented in the architecture docs; validation depth is limited only by the unrelated stale active-spec path in scripts/check.mjs."
+  second_pass_performed: false

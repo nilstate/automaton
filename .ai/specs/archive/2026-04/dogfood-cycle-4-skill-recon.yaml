@@ -1,0 +1,244 @@
+spec_version: "1.1"
+task_id: "dogfood-cycle-4-skill-recon"
+created: "2026-04-20T12:51:05Z"
+updated: "2026-04-20T12:54:47Z"
+status: "completed"
+harden_status: "not_run"
+
+task:
+  title: "Dogfood cycle 4: improve skill-recon"
+  summary: >
+    Fourth cycle. Target: skill-recon (the "skill lab" equivalent in
+    current runx naming). skill-recon's SKILL.md lists "prior art in
+    runx" as priority 3 but the existing harness only covers the
+    happy path where a new flow is proposed. Cycle 4 adds a
+    harness case and SKILL.md guidance for the "recommend reuse"
+    outcome: when decomposition references a skill that already
+    exists, skill-recon should recommend reusing it rather than
+    drafting new primitives.
+  size: "medium"
+  risk_level: "low"
+  context:
+    packages:
+      - "../runx/oss/skills/skill-recon"
+      - ".artifacts/dogfood-cycles"
+      - "docs"
+    files_impacted:
+      - path: "../runx/oss/skills/skill-recon/SKILL.md"
+        lines: "as-needed"
+        reason: "Elevate 'recommend reuse' as a first-class output."
+      - path: "../runx/oss/skills/skill-recon/X.yaml"
+        lines: "as-needed"
+        reason: "Add a recommend-reuse harness case."
+      - path: ".artifacts/dogfood-cycles/dogfood-cycle-4-skill-recon/"
+        lines: "all"
+        reason: "Evidence bundle."
+      - path: "docs/dogfood.md"
+        lines: "as-needed"
+        reason: "Catalog + cycle log + pressure rows."
+    invariants:
+      - "receipts_stay_canonical"
+      - "bounded_improvement_per_cycle"
+      - "no_cycle_is_a_no_op"
+    related_docs:
+      - "docs/dogfood.md"
+      - "../runx/oss/skills/skill-recon/SKILL.md"
+    cwd: "/home/kam/dev/aster"
+  objectives:
+    - "Clarify in skill-recon SKILL.md that recommending reuse is a first-class output."
+    - "Add a harness case covering the recommend-reuse path."
+    - "Verify harness stays green."
+    - "Record in docs/dogfood.md."
+  scope:
+    in_scope:
+      - "Editing skill-recon SKILL.md and X.yaml."
+      - "Updating docs/dogfood.md."
+    out_of_scope:
+      - "Editing skills other than skill-recon."
+      - "Kernel changes."
+      - "External PRs."
+  dependencies:
+    - "Cycle 3 complete and pushed."
+  assumptions:
+    - "skill-recon's harness accepts a second case alongside the existing one."
+  touchpoints:
+    - area: "skill-recon"
+      description: "One bounded SKILL.md + X.yaml change."
+      owners: ["aster", "runx"]
+    - area: "campaign"
+      description: "docs/dogfood.md rows."
+      owners: ["aster"]
+  risks:
+    - description: "Over-prescribing 'recommend reuse' could discourage legitimate new skill work."
+      impact: "low"
+      mitigation: "SKILL.md change is additive guidance; harness case is narrow."
+  acceptance:
+    validation_profile: "standard"
+    definition_of_done:
+      - id: "dod1"
+        description: "Diagnosis captured."
+        status: "pending"
+      - id: "dod2"
+        description: "SKILL.md elevates 'recommend reuse' as first-class output."
+        status: "pending"
+      - id: "dod3"
+        description: "X.yaml has a recommend-reuse harness case."
+        status: "pending"
+      - id: "dod4"
+        description: "skill-recon harness passes after the change."
+        status: "pending"
+      - id: "dod5"
+        description: "Cycle evidence bundle complete."
+        status: "pending"
+      - id: "dod6"
+        description: "docs/dogfood.md updated."
+        status: "pending"
+    validation:
+      - id: "v1"
+        type: "boundary"
+        description: "Cycle evidence folder complete."
+        command: "bash -c 'd=.artifacts/dogfood-cycles/dogfood-cycle-4-skill-recon; for f in objective.md receipt.json diagnosis.json improvement.md patch.diff cycle_metadata.json; do [ -s \"$d/$f\" ] || { echo missing $f; exit 1; }; done; echo ok'"
+        expected: "ok"
+      - id: "v2"
+        type: "test"
+        description: "skill-recon harness passes."
+        command: "bash -c 'cd ../runx && runx harness oss/skills/skill-recon --json > /tmp/sr-harness.json && s=$(jq -r .status /tmp/sr-harness.json); [ \"$s\" = success ] && echo ok || echo fail'"
+        expected: "ok"
+      - id: "v3"
+        type: "documentation"
+        description: "docs/dogfood.md references cycle 4."
+        command: "bash -c 'n=$(grep -c dogfood-cycle-4-skill-recon docs/dogfood.md); [ \"$n\" -ge 2 ] && echo ok || echo fail'"
+        expected: "ok"
+  constraints:
+    approvals_required: []
+    non_goals:
+      - "No kernel changes"
+      - "No external PRs"
+
+planning_log:
+  - timestamp: "2026-04-20T12:51:05Z"
+    actor: "agent"
+    summary: "Cycle 4 drafted targeting skill-recon's recommend-reuse path."
+
+  - timestamp: "2026-04-20T12:51:59Z"
+    actor: "cli"
+    summary: "Spec approved"
+  - timestamp: "2026-04-20T12:51:59Z"
+    actor: "cli"
+    summary: "Execution started"
+  - timestamp: "2026-04-20T12:54:47Z"
+    actor: "cli"
+    summary: "Spec completed"
+phases:
+  - id: "phase1"
+    name: "Diagnose and author"
+    objective: "Capture the finding and draft the edit."
+    changes:
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-4-skill-recon/objective.md"
+        action: "create"
+        lines: "all"
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-4-skill-recon/receipt.json"
+        action: "create"
+        lines: "all"
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-4-skill-recon/diagnosis.json"
+        action: "create"
+        lines: "all"
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-4-skill-recon/improvement.md"
+        action: "create"
+        lines: "all"
+    acceptance_criteria:
+      - id: "ac1_1"
+        type: "boundary"
+        description: "Phase-1 evidence files exist."
+        command: "bash -c 'd=.artifacts/dogfood-cycles/dogfood-cycle-4-skill-recon; for f in objective.md receipt.json diagnosis.json improvement.md; do [ -s \"$d/$f\" ] || { echo missing $f; exit 1; }; done; echo ok'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T12:54:18Z"
+        result_output: "ok"
+    status: "pending"
+
+  - id: "phase2"
+    name: "Land edit"
+    objective: "SKILL.md + X.yaml."
+    dependencies: ["phase1"]
+    changes:
+      - file: "../runx/oss/skills/skill-recon/SKILL.md"
+        action: "update"
+        lines: "as-needed"
+      - file: "../runx/oss/skills/skill-recon/X.yaml"
+        action: "update"
+        lines: "as-needed"
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-4-skill-recon/patch.diff"
+        action: "create"
+        lines: "all"
+    acceptance_criteria:
+      - id: "ac2_1"
+        type: "boundary"
+        description: "Patch file exists."
+        command: "bash -c '[ -f .artifacts/dogfood-cycles/dogfood-cycle-4-skill-recon/patch.diff ] && echo ok'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T12:54:18Z"
+        result_output: "ok"
+    status: "pending"
+
+  - id: "phase3"
+    name: "Verify and record"
+    objective: "Harness + metadata + docs."
+    dependencies: ["phase2"]
+    changes:
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-4-skill-recon/cycle_metadata.json"
+        action: "create"
+        lines: "all"
+      - file: "docs/dogfood.md"
+        action: "update"
+        lines: "as-needed"
+    acceptance_criteria:
+      - id: "ac3_1"
+        type: "test"
+        description: "Harness passes."
+        command: "bash -c 'cd ../runx && runx harness oss/skills/skill-recon --json > /tmp/sr-harness.json && s=$(jq -r .status /tmp/sr-harness.json); [ \"$s\" = success ] && echo ok || echo fail'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T12:54:19Z"
+        result_output: "ok"
+      - id: "ac3_2"
+        type: "documentation"
+        description: "docs/dogfood.md references cycle 4 at least twice."
+        command: "bash -c 'n=$(grep -c dogfood-cycle-4-skill-recon docs/dogfood.md); [ \"$n\" -ge 2 ] && echo ok || echo fail'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T12:54:19Z"
+        result_output: "ok"
+    status: "pending"
+
+rollback:
+  strategy: "per_phase"
+  commands:
+    phase1: "rm -rf .artifacts/dogfood-cycles/dogfood-cycle-4-skill-recon"
+    phase2: "git -C ../runx/oss checkout HEAD -- skills/skill-recon && rm -f .artifacts/dogfood-cycles/dogfood-cycle-4-skill-recon/patch.diff"
+    phase3: "git checkout HEAD -- docs/dogfood.md && rm -f .artifacts/dogfood-cycles/dogfood-cycle-4-skill-recon/cycle_metadata.json"
+
+review:
+  timestamp: "2026-04-20T12:54:21Z"
+  verdict: "pass"
+  review_rounds: 1
+  reviewer_mode: "executor"
+  reviewer_session: ""
+  round_status: "completed"
+  override_applied: false
+  override_reason: null
+  override_confirmed_at: null
+  passes:
+    - id: spec_compliance
+      result: "pass"
+    - id: scope_drift
+      result: "pass"
+    - id: regression_hunt
+      result: "pass"
+    - id: convention_check
+      result: "pass"
+    - id: dark_patterns
+      result: "pass"
+  blocking_count: 0
+  non_blocking_count: 0

@@ -1,8 +1,8 @@
 spec_version: "1.1"
 task_id: "aster-public-face-and-self-documentation"
 created: "2026-04-16T12:00:00Z"
-updated: "2026-04-16T12:00:00Z"
-status: "draft"
+updated: "2026-04-20T10:43:39Z"
+status: "completed"
 
 task:
   title: "Define aster public face and self-documentation surfaces"
@@ -65,19 +65,24 @@ task:
     definition_of_done:
       - id: "dod1"
         description: "The architecture plan names the separate public face and its content sources."
-        status: "pending"
+        status: "done"
+        checked_at: "2026-04-20T10:37:32Z"
       - id: "dod2"
         description: "The plan distinguishes canonical receipts from public narrative."
-        status: "pending"
+        status: "done"
+        checked_at: "2026-04-20T10:37:32Z"
       - id: "dod3"
         description: "The target repo shape for doctrine, state, history, reflections, and site is documented."
-        status: "pending"
+        status: "done"
+        checked_at: "2026-04-20T10:37:32Z"
       - id: "dod4"
         description: "The spec explains that working docs may remain, but site/ is the intended public face."
-        status: "pending"
+        status: "done"
+        checked_at: "2026-04-20T10:37:32Z"
       - id: "dod5"
         description: "The spec defines the stable public route contract and rendering sources."
-        status: "pending"
+        status: "done"
+        checked_at: "2026-04-20T10:37:32Z"
     validation:
       - id: "v1"
         type: "documentation"
@@ -97,6 +102,20 @@ planning_log:
       Created after the boundary reset so the separate public face can be
       planned cleanly without turning runx.ai into an aster product shell.
 
+  - timestamp: "2026-04-20T10:36:31Z"
+    actor: "cli"
+    summary: "Spec approved"
+  - timestamp: "2026-04-20T10:36:31Z"
+    actor: "cli"
+    summary: "Execution started"
+  - timestamp: "2026-04-20T10:37:32Z"
+    actor: "codex"
+    summary: >
+      Verified the documentation acceptance criteria manually after scafld exec
+      reported false negatives for successful documentation checks.
+  - timestamp: "2026-04-20T10:43:39Z"
+    actor: "cli"
+    summary: "Spec completed"
 phases:
   - id: "phase1"
     name: "Site Boundary"
@@ -114,7 +133,12 @@ phases:
         description: "Public face and migration section is present."
         command: "rg -n \"Public Face|site/ is the intended public face|Sourcey is optional tooling\" docs/architecture.md"
         expected: "public face boundary present"
-    status: "pending"
+        result:
+          status: "pass"
+          timestamp: "2026-04-20T10:36:42Z"
+          output: "100:## Public Face 128:- `site/` is the intended public face 129:- Sourcey is optional tooling, not part of the 10/10 architecture"
+    summary: "Verified the separate public face, working-docs migration, and Sourcey-is-optional boundary."
+    status: "completed"
   - id: "phase2"
     name: "Self-Documentation Sources"
     objective: "Define which repo-owned materials feed the site."
@@ -131,7 +155,12 @@ phases:
         description: "Repo shape section is present."
         command: "rg -n \"Repo Shape|doctrine/|state/|history/|reflections/|site/|\\.artifacts/|docs/\" docs/architecture.md"
         expected: "repo shape section present"
-    status: "pending"
+        result:
+          status: "pass"
+          timestamp: "2026-04-20T10:36:42Z"
+          output: "153:## Repo Shape 159:  doctrine/ 160:  state/ 162:  history/ 163:  reflections/ 164:  site/ 167:  .artifacts/ 168:  docs/"
+    summary: "Verified the target repo shape and ownership descriptions for doctrine, state, history, reflections, site, docs, and artifacts."
+    status: "completed"
   - id: "phase3"
     name: "Narrative Policy"
     objective: "Define what counts as canonical proof versus public narrative."
@@ -148,7 +177,12 @@ phases:
         description: "Canonical-vs-public rules are present."
         command: "rg -n \"Canonical, Derived, Public|Canonical receipts and generic run evidence\" docs/architecture.md"
         expected: "narrative policy present"
-    status: "pending"
+        result:
+          status: "pass"
+          timestamp: "2026-04-20T10:36:42Z"
+          output: "119:Canonical receipts and generic run evidence should still resolve through `runx` surfaces. 231:## Canonical, Derived, Public"
+    summary: "Verified the canonical-receipt versus public-narrative boundary and the rule that narrative links back to receipts."
+    status: "completed"
   - id: "phase4"
     name: "Route And Rendering Contract"
     objective: "Define the stable public route contract and what each page is allowed to render from."
@@ -165,7 +199,12 @@ phases:
         description: "Site information architecture is present."
         command: "rg -n \"Site Information Architecture|/priorities|/history|/capabilities|/reflections|/targets/\\[slug\\]\" docs/architecture.md"
         expected: "site route contract present"
-    status: "pending"
+        result:
+          status: "pass"
+          timestamp: "2026-04-20T10:36:42Z"
+          output: "691:## Site Information Architecture 698:- `/priorities` — live priorities and rationale from `state/` 699:- `/history` — append-only public history 700:- `/capabilities` — current lanes, trust posture, and capability inventory 701:- `/reflections` — selected public reflections 702:- `/targets/[slug]` — public target context where appropriate"
+    summary: "Verified the stable public route contract and rendering sources for the aster.runx.ai site."
+    status: "completed"
 
 rollback:
   strategy: "per_phase"
@@ -174,3 +213,35 @@ rollback:
     phase2: "git checkout HEAD -- docs/architecture.md"
     phase3: "git checkout HEAD -- docs/architecture.md"
     phase4: "git checkout HEAD -- docs/architecture.md"
+
+review:
+  timestamp: "2026-04-20T10:41:53Z"
+  verdict: "pass_with_issues"
+  review_rounds: 1
+  reviewer_mode: "executor"
+  reviewer_session: ""
+  round_status: "completed"
+  override_applied: false
+  override_reason: null
+  override_confirmed_at: null
+  passes:
+    - id: spec_compliance
+      result: "pass"
+    - id: scope_drift
+      result: "pass"
+    - id: regression_hunt
+      result: "pass"
+    - id: convention_check
+      result: "pass"
+    - id: dark_patterns
+      result: "pass_with_issues"
+  blocking_count: 0
+  non_blocking_count: 1
+self_eval:
+  completeness: 2
+  architecture_fidelity: 3
+  spec_alignment: 2
+  validation_depth: 1
+  total: 8
+  notes: "The public-face and route-contract documentation is in place; validation depth is capped only by the unrelated stale active-spec path in scripts/check.mjs."
+  second_pass_performed: false

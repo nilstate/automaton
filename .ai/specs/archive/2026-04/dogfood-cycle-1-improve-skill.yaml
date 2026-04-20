@@ -1,0 +1,382 @@
+spec_version: "1.1"
+task_id: "dogfood-cycle-1-improve-skill"
+created: "2026-04-20T11:09:27Z"
+updated: "2026-04-20T11:22:36Z"
+status: "completed"
+harden_status: "not_run"
+
+task:
+  title: "Dogfood cycle 1: improve improve-skill"
+  summary: >
+    First cycle of the aster dogfood campaign documented in
+    docs/dogfood.md. The target skill is `improve-skill` itself —
+    the composite skill that chains `receipt-review` into
+    `harness-author`. Running improve-skill end-to-end on a real
+    failing receipt calibrates the dogfood instrument before we
+    use it on the rest of the catalog: if improve-skill is broken,
+    every downstream cycle is compromised.
+
+    A real failing receipt is picked from the existing aster
+    dogfood bundle under `.artifacts/runx-dogfood/`. improve-skill
+    is invoked through the runx CLI, the output is captured, the
+    proposal is applied as a bounded change to
+    `runx/oss/skills/improve-skill/` or its harness fixtures, the
+    skill version is bumped, and the harness is re-run to confirm
+    the improvement sticks. The cycle ends with a row in the
+    catalog and a row in the pressure-signals table in
+    docs/dogfood.md.
+
+    Scope is intentionally bounded to one skill, one improvement,
+    one version bump. Anything larger discovered during the cycle
+    is recorded as a new draft spec, not landed here.
+  size: "medium"
+  risk_level: "low"
+  context:
+    packages:
+      - "../runx/oss/skills/improve-skill"
+      - "../runx/oss/skills/receipt-review"
+      - "../runx/oss/skills/harness-author"
+      - ".artifacts/runx-dogfood"
+      - ".artifacts/dogfood-cycles"
+      - "docs"
+    files_impacted:
+      - path: "../runx/oss/skills/improve-skill/SKILL.md"
+        lines: "as-needed"
+        reason: "Possible prompt or step-description edit surfaced by the diagnosis."
+      - path: "../runx/oss/skills/improve-skill/X.yaml"
+        lines: "as-needed"
+        reason: "Possible harness fixture addition or chain-step wiring fix."
+      - path: ".artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill/"
+        lines: "all"
+        reason: "Per-cycle evidence bundle: objective, receipt, diagnosis, improvement, patch, cycle_metadata.json."
+      - path: "docs/dogfood.md"
+        lines: "as-needed"
+        reason: "Catalog row, cycle log row, pressure-signals row."
+    invariants:
+      - "receipts_stay_canonical"
+      - "bounded_improvement_per_cycle"
+      - "version_bump_on_change"
+      - "no_cycle_is_a_no_op"
+    related_docs:
+      - "docs/dogfood.md"
+      - "../runx/oss/skills/improve-skill/SKILL.md"
+      - "../runx/oss/skills/improve-skill/X.yaml"
+      - "../runx/oss/skills/receipt-review/SKILL.md"
+      - "../runx/oss/skills/harness-author/SKILL.md"
+    cwd: "/home/kam/dev/aster"
+  objectives:
+    - "Run improve-skill via the runx CLI on a real failing receipt from .artifacts/runx-dogfood/."
+    - "Capture receipt, diagnosis, and improvement artefacts under the cycle evidence folder."
+    - "Apply at least one bounded improvement to improve-skill (SKILL.md, X.yaml, or a harness fixture) and bump its version."
+    - "Verify the improvement via `runx harness runx/oss/skills/improve-skill`."
+    - "Record the cycle in the catalog, cycle log, and pressure-signals table in docs/dogfood.md."
+    - "Surface anything out-of-scope as a new draft spec rather than expanding this cycle."
+  scope:
+    in_scope:
+      - "Invoking runx CLI on real receipts and on improve-skill itself"
+      - "Editing improve-skill's SKILL.md, X.yaml, or harness fixtures"
+      - "Writing cycle evidence under .artifacts/dogfood-cycles/"
+      - "Bumping improve-skill's version"
+      - "Updating docs/dogfood.md rows"
+      - "Filing follow-up drafts for larger issues discovered"
+    out_of_scope:
+      - "Editing skills other than improve-skill"
+      - "Changes to the runx execution kernel"
+      - "Changes to aster hosted workflows or the thread-teaching stack"
+      - "Opening external upstream PRs"
+      - "Multi-cycle work (this spec is cycle 1 only)"
+  dependencies:
+    - "runx CLI globally linked and working (plain `runx` invocation)"
+    - "Node/pnpm environment able to run runx and its skills"
+    - "At least one real failing or suspicious receipt under `.artifacts/runx-dogfood/`"
+  assumptions:
+    - "improve-skill has an existing harness that can be re-run after a fixture or prompt edit."
+    - "A bounded improvement can be found in one pass; if not, the cycle produces a `no_improvement_found` verdict and opens a follow-up draft instead."
+    - "Semver bumps for skills are recorded either in SKILL.md frontmatter or in X.yaml metadata; whichever is current is what gets bumped."
+  touchpoints:
+    - area: "runx CLI"
+      description: "Invoke improve-skill and the harness via the runx command-line."
+      owners: ["aster", "runx"]
+    - area: "skill change"
+      description: "Land one bounded improvement to improve-skill."
+      owners: ["aster"]
+    - area: "evidence capture"
+      description: "Per-cycle folder under .artifacts/dogfood-cycles/."
+      owners: ["aster"]
+    - area: "campaign doc"
+      description: "docs/dogfood.md catalog, cycle log, and pressure rows."
+      owners: ["aster"]
+  risks:
+    - description: "improve-skill runs succeed but produce vague or un-actionable proposals, making a bounded improvement impossible to land."
+      impact: "medium"
+      mitigation: "Record the verdict honestly as `no_improvement_found`, open a new draft spec capturing the failure mode, and end the cycle cleanly rather than forcing a change."
+    - description: "Improvement scope creeps beyond one bounded change (e.g., rewriting the whole prompt)."
+      impact: "medium"
+      mitigation: "Non-goals list caps the scope. Any change larger than ~30 lines or touching more than two files spawns a new draft spec instead."
+    - description: "Version bump conflicts with an independent runx change."
+      impact: "low"
+      mitigation: "Verify `git status` in runx before and after the edit; coordinate via branch if needed."
+    - description: "Evidence folder gets committed with sensitive content (tokens in receipts)."
+      impact: "medium"
+      mitigation: "Review the bundle before commit; receipts should already be redacted by runx but confirm."
+  acceptance:
+    validation_profile: "standard"
+    definition_of_done:
+      - id: "dod1"
+        description: "improve-skill was invoked via `runx improve-skill ...` on a real receipt and produced a diagnosis + proposal artefact."
+        status: "pending"
+      - id: "dod2"
+        description: "A bounded improvement has been applied to improve-skill (or the cycle honestly recorded no_improvement_found with a follow-up draft)."
+        status: "pending"
+      - id: "dod3"
+        description: "improve-skill's version has been bumped if any change landed."
+        status: "pending"
+      - id: "dod4"
+        description: "The harness passes after the change: `runx harness runx/oss/skills/improve-skill` exits 0."
+        status: "pending"
+      - id: "dod5"
+        description: "Per-cycle evidence folder contains objective.md, receipt.json, diagnosis.json, improvement.md, patch.diff, and cycle_metadata.json."
+        status: "pending"
+      - id: "dod6"
+        description: "docs/dogfood.md has the cycle row, catalog row updated, and a pressure-signals row."
+        status: "pending"
+    validation:
+      - id: "v1"
+        type: "boundary"
+        description: "Cycle evidence folder exists with all six required files."
+        command: "bash -c 'd=.artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill; for f in objective.md receipt.json diagnosis.json improvement.md patch.diff cycle_metadata.json; do [ -s \"$d/$f\" ] || { echo missing $f; exit 1; }; done; echo ok'"
+        expected: "ok"
+      - id: "v2"
+        type: "test"
+        description: "cycle_metadata.json records a recognised verdict."
+        command: "bash -c 'v=$(jq -r .verdict .artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill/cycle_metadata.json); case \"$v\" in needs_update|pass|fail|no_improvement_found) echo ok;; *) echo \"bad verdict: $v\"; exit 1;; esac'"
+        expected: "ok"
+      - id: "v3"
+        type: "test"
+        description: "improve-skill harness passes after any change."
+        command: "bash -c 'cd ../runx && runx harness oss/skills/improve-skill --json > /tmp/imp-harness.json && s=$(jq -r .status /tmp/imp-harness.json); [ \"$s\" = success ] && echo ok || echo fail'"
+        expected: "ok"
+      - id: "v4"
+        type: "documentation"
+        description: "docs/dogfood.md contains a cycle row referencing dogfood-cycle-1-improve-skill."
+        command: "grep -c dogfood-cycle-1-improve-skill docs/dogfood.md"
+        expected: "at least 1"
+      - id: "v5"
+        type: "boundary"
+        description: "If a change landed, improve-skill's declared version was bumped. If verdict is no_improvement_found, this check is skipped and the follow-up draft path is used instead."
+        command: "bash -c 'v=$(jq -r .verdict .artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill/cycle_metadata.json); if [ \"$v\" = no_improvement_found ]; then echo ok; else a=$(jq -r .version_before .artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill/cycle_metadata.json); b=$(jq -r .version_after .artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill/cycle_metadata.json); [ \"$a\" != \"$b\" ] && echo ok || { echo \"version not bumped: $a -> $b\"; exit 1; }; fi'"
+        expected: "ok"
+  constraints:
+    approvals_required: []
+    non_goals:
+      - "No edits outside improve-skill and its harness"
+      - "No runx execution-kernel changes"
+      - "No aster workflow changes"
+      - "No external PRs"
+  info_sources:
+    - "docs/dogfood.md"
+    - "../runx/oss/skills/improve-skill/SKILL.md"
+    - "../runx/oss/skills/improve-skill/X.yaml"
+    - ".artifacts/runx-dogfood/"
+  notes: >
+    Cycle-1 scope choice: improve-skill itself is the dogfood instrument,
+    so the first cycle calibrates it. If this cycle honestly returns
+    no_improvement_found, that is still useful signal (it says the
+    instrument is stable enough to trust on other skills) — in that
+    case we record it, file a follow-up if any lesser issue was noticed,
+    and move to cycle 2.
+
+planning_log:
+  - timestamp: "2026-04-20T11:15:00Z"
+    actor: "user"
+    summary: "Rescoped dogfood from miss-read gh-workflow orchestration to runx-CLI improvement cycles after the previous spec was cancelled."
+  - timestamp: "2026-04-20T11:15:00Z"
+    actor: "agent"
+    summary: "Drafted cycle 1 targeting improve-skill. Cycle pattern and catalog live in docs/dogfood.md; per-cycle evidence layout and verdict vocabulary are locked to the schema defined there."
+
+  - timestamp: "2026-04-20T11:14:30Z"
+    actor: "cli"
+    summary: "Spec approved"
+  - timestamp: "2026-04-20T11:14:31Z"
+    actor: "cli"
+    summary: "Execution started"
+  - timestamp: "2026-04-20T11:22:36Z"
+    actor: "cli"
+    summary: "Spec completed"
+phases:
+  - id: "phase1"
+    name: "Pick objective and invoke improve-skill"
+    objective: >
+      Choose one real failing receipt under .artifacts/runx-dogfood/
+      (or run a fresh target skill to produce one), write the cycle
+      objective, and invoke `runx improve-skill --receipt <id>` to
+      capture the diagnosis + proposal.
+    changes:
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill/objective.md"
+        action: "create"
+        lines: "all"
+        content_spec: |
+          One paragraph on the chosen objective and success criterion.
+          Name the upstream receipt path and the target skill being
+          exercised.
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill/receipt.json"
+        action: "create"
+        lines: "all"
+        content_spec: |
+          Copy of the source receipt used as input to improve-skill.
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill/diagnosis.json"
+        action: "create"
+        lines: "all"
+        content_spec: |
+          Full JSON output from receipt-review inside improve-skill.
+          Includes verdict, failure_summary, improvement_proposals[].
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill/improvement.md"
+        action: "create"
+        lines: "all"
+        content_spec: |
+          Harness-author output plus a short human-written rationale
+          explaining which proposal was chosen and why.
+    acceptance_criteria:
+      - id: "ac1_1"
+        type: "boundary"
+        description: "All four phase-1 files exist and are non-empty."
+        command: "bash -c 'd=.artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill; for f in objective.md receipt.json diagnosis.json improvement.md; do [ -s \"$d/$f\" ] || { echo missing $f; exit 1; }; done; echo ok'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T11:21:49Z"
+        result_output: "ok"
+    status: "pending"
+
+  - id: "phase2"
+    name: "Apply the bounded improvement"
+    objective: >
+      Apply the chosen proposal as a bounded edit to improve-skill
+      (SKILL.md, X.yaml, or a harness fixture). Produce the patch and
+      bump the skill's declared version. If no actionable improvement
+      can be made, record verdict `no_improvement_found` and stop the
+      cycle cleanly.
+    dependencies: ["phase1"]
+    changes:
+      - file: "../runx/oss/skills/improve-skill/SKILL.md"
+        action: "update"
+        lines: "as-needed"
+        content_spec: |
+          Only if the chosen proposal targets SKILL.md. Keep the edit
+          bounded; anything larger spawns a follow-up draft.
+      - file: "../runx/oss/skills/improve-skill/X.yaml"
+        action: "update"
+        lines: "as-needed"
+        content_spec: |
+          Only if the proposal targets chain wiring or harness fixtures
+          in X.yaml. Keep bounded.
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill/patch.diff"
+        action: "create"
+        lines: "all"
+        content_spec: |
+          `git diff` of the landed improvement for audit.
+    acceptance_criteria:
+      - id: "ac2_1"
+        type: "boundary"
+        description: "Patch file exists (non-empty diff or explicitly empty with a no_improvement_found note)."
+        command: "bash -c 'p=.artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill/patch.diff; [ -f \"$p\" ] && echo ok'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T11:21:49Z"
+        result_output: "ok"
+    status: "pending"
+
+  - id: "phase3"
+    name: "Verify via harness and record pressure signals"
+    objective: >
+      Run the improve-skill harness to verify the change. Write
+      cycle_metadata.json including the pressure signals computed from
+      the receipt.
+    dependencies: ["phase2"]
+    changes:
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill/cycle_metadata.json"
+        action: "create"
+        lines: "all"
+        content_spec: |
+          Per the schema in docs/dogfood.md: cycle_id, target_skill,
+          target_skill_path, objective, runx_run_id, receipt_path,
+          verdict, improvement_summary, version_before, version_after,
+          spec_links, started_at, completed_at, and the
+          receipt_pressure_signals block (receipt_bytes, journal_entries,
+          chain_steps, search_candidates).
+    acceptance_criteria:
+      - id: "ac3_1"
+        type: "test"
+        description: "improve-skill harness passes after the change."
+        command: "bash -c 'cd ../runx && runx harness oss/skills/improve-skill --json > /tmp/imp-harness.json && s=$(jq -r .status /tmp/imp-harness.json); [ \"$s\" = success ] && echo ok || echo fail'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T11:21:50Z"
+        result_output: "ok"
+      - id: "ac3_2"
+        type: "boundary"
+        description: "cycle_metadata.json is well-formed and includes the pressure_signals block."
+        command: "bash -c 'jq -e \".receipt_pressure_signals.receipt_bytes!=null\" .artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill/cycle_metadata.json > /dev/null && echo ok'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T11:21:50Z"
+        result_output: "ok"
+    status: "pending"
+
+  - id: "phase4"
+    name: "Record in docs/dogfood.md"
+    objective: >
+      Update the skill catalog row, cycle log row, and pressure-signals
+      row in docs/dogfood.md so subsequent cycles see the current state.
+    dependencies: ["phase3"]
+    changes:
+      - file: "docs/dogfood.md"
+        action: "update"
+        lines: "as-needed"
+        content_spec: |
+          Flip the improve-skill catalog row to `dogfooded` with cycle
+          id `dogfood-cycle-1-improve-skill` and the new version.
+          Append a cycle log row (cycle id, skill, verdict, version
+          bump, improvement summary, receipt bytes, evidence path).
+          Update the pressure-signals table with the new totals.
+    acceptance_criteria:
+      - id: "ac4_1"
+        type: "documentation"
+        description: "Catalog and cycle log both reference cycle 1."
+        command: "bash -c 'n=$(grep -c dogfood-cycle-1-improve-skill docs/dogfood.md); [ \"$n\" -ge 2 ] && echo ok || echo fail'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T11:21:50Z"
+        result_output: "ok"
+    status: "pending"
+
+rollback:
+  strategy: "per_phase"
+  commands:
+    phase1: "rm -rf .artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill"
+    phase2: "git -C ../runx checkout HEAD -- oss/skills/improve-skill && rm -f .artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill/patch.diff"
+    phase3: "rm -f .artifacts/dogfood-cycles/dogfood-cycle-1-improve-skill/cycle_metadata.json"
+    phase4: "git checkout HEAD -- docs/dogfood.md"
+
+review:
+  timestamp: "2026-04-20T11:22:05Z"
+  verdict: "pass_with_issues"
+  review_rounds: 1
+  reviewer_mode: "executor"
+  reviewer_session: ""
+  round_status: "completed"
+  override_applied: false
+  override_reason: null
+  override_confirmed_at: null
+  passes:
+    - id: spec_compliance
+      result: "pass"
+    - id: scope_drift
+      result: "pass"
+    - id: regression_hunt
+      result: "pass"
+    - id: convention_check
+      result: "pass_with_issues"
+    - id: dark_patterns
+      result: "pass"
+  blocking_count: 0
+  non_blocking_count: 1

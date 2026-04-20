@@ -1,0 +1,461 @@
+spec_version: "1.1"
+task_id: "dogfood-skill-chain-approval-gates"
+created: "2026-04-20T10:40:00Z"
+updated: "2026-04-20T11:08:01Z"
+status: "cancelled"
+harden_status: "not_run"
+
+task:
+  title: "Dogfood thread-teaching approval gates across skill chains"
+  summary: >
+    Run multiple real skill-contribution chains end-to-end through the
+    recently-landed thread-teaching approval gate, governed collaboration
+    record, and merge-watch stack. The aim is to exercise the approval
+    gate under real pressure across at least three upstream targets,
+    cover failure paths (not just the icey-cli happy path), and generate
+    the receipt/journal traffic that will tell us whether the governed
+    receipts product surface and hosted memory substrate are justified.
+
+    This is a dogfood task, not a build task. It runs existing lanes,
+    collects evidence, surfaces defects, and produces an aggregate
+    findings report. Any code change required to unblock a chain is
+    recorded as a follow-up spec, not landed inside this one.
+  size: "large"
+  risk_level: "medium"
+  context:
+    packages:
+      - ".github/workflows"
+      - "scripts"
+      - ".artifacts"
+      - "state"
+      - "docs"
+    files_impacted:
+      - path: ".artifacts/skill-upstream/"
+        lines: "all"
+        reason: "Per-target skill-contribution artefacts from each dogfood run."
+      - path: ".artifacts/collaboration-record/"
+        lines: "all"
+        reason: "Thread-teaching packets produced by the collaboration-record workflow for each dogfood issue."
+      - path: ".artifacts/merge-watch/"
+        lines: "all"
+        reason: "Post-merge watcher output per upstream PR."
+      - path: "state/thread-teaching.json"
+        lines: "all"
+        reason: "Derived thread-teaching state grows as dogfood issues produce authorizations."
+      - path: "docs/dogfood.md"
+        lines: "all"
+        reason: "Record the dogfood trajectory and findings."
+      - path: ".ai/reviews/dogfood-skill-chain-approval-gates.md"
+        lines: "all"
+        reason: "Aggregate findings report from the dogfood round."
+    invariants:
+      - "issues_are_canonical_human_teaching_layer"
+      - "receipts_stay_canonical"
+      - "derived_memory_is_rebuildable"
+      - "no_upstream_automerge"
+      - "fail_closed_without_authorization"
+    related_docs:
+      - "docs/skill-upstream.md"
+      - "docs/run-catalog.md"
+      - "docs/flows.md"
+      - "docs/dogfood.md"
+      - ".ai/specs/archive/2026-04/aster-thread-teaching-cutover.yaml"
+      - ".ai/specs/archive/2026-04/governed-collaboration-surface-hardening.yaml"
+      - ".ai/specs/archive/2026-04/skill-contribution-watch-post-merge.yaml"
+      - ".ai/specs/archive/2026-04/dogfood-icey-cli-skill-contribution.yaml"
+    cwd: "/home/kam/dev/aster"
+  objectives:
+    - "Run the full skill-contribution chain against at least three upstream targets beyond icey-cli."
+    - "Exercise the thread-teaching approval gate for docs-pr.publish, fix-pr.publish, and skill-upstream.publish selectors under real traffic."
+    - "Cover non-happy-path outcomes: closed-without-merge, failing-checks, withdrawn-authorization, at least one per target set."
+    - "Capture per-run receipts, journal, and evidence artefacts so governed-receipts pressure can be measured."
+    - "Record any defects surfaced by real traffic as new drafts; do not land fixes inside this spec unless a blocker halts the dogfood."
+    - "Produce an aggregate findings report naming what the gate stack did well, where it failed, and what the next platform move should be."
+  scope:
+    in_scope:
+      - "Target selection across nilstate, sourcey, and auscaster orgs"
+      - "Collaboration issue authoring for each target"
+      - "Dispatching skill-upstream workflow from hosted CI"
+      - "Monitoring merge-watch output on each upstream PR"
+      - "Intentional failure injection to exercise fail-closed paths"
+      - "Receipt/journal traffic capture for evidence"
+      - "Defect triage: blocking fixes inline, non-blocking as follow-up drafts"
+      - "Aggregate findings write-up in docs/dogfood.md and the review file"
+    out_of_scope:
+      - "Building new approval gate features"
+      - "Building governed receipts search/replay surfaces"
+      - "Building the hosted memory substrate"
+      - "Auto-merging upstream PRs"
+      - "Adding x.yaml or runx-internal files to upstream targets"
+      - "Selecting targets outside repos we already maintain"
+  dependencies:
+    - "skill-upstream workflow deployed on main of auscaster/aster"
+    - "thread-teaching-derive workflow deployed"
+    - "collaboration-record workflow deployed"
+    - "merge-watch workflow deployed"
+    - "UPSTREAM_CONTRIBUTION_TOKEN or RUNX_WORKSPACE_PAT with repo scope for target orgs"
+    - "RUNX_PUBLIC_EVIDENCE_TOKEN for proof-wall publication"
+    - "GitHub CLI authenticated locally for manual verification"
+  assumptions:
+    - "Three additional targets is enough signal to inform the governed-receipts vs hosted-memory decision; more becomes speculative."
+    - "Nilstate-owned and sourcey-owned repos are valid dogfood targets because we can merge the upstream PR ourselves if needed without violating no-automerge (human approval is ours to grant)."
+    - "Failure paths produce as much learning as happy paths, so at least one intentional failure is required."
+    - "Any defect that does not block the chain completing is captured as a draft spec, not fixed inline."
+  touchpoints:
+    - area: "target selection"
+      description: "Pick three targets with clear build/release/operator workflows to feed the SKILL.md generator."
+      owners: ["aster"]
+    - area: "approval gate"
+      description: "Author collaboration issues that exercise every gate selector at least once, including fail-closed paths."
+      owners: ["aster"]
+    - area: "merge-watch"
+      description: "Observe watcher output for happy, non-merged, and failing-checks outcomes."
+      owners: ["aster"]
+    - area: "receipt traffic"
+      description: "Instrument receipt/journal capture per run to feed the governed-receipts scope question."
+      owners: ["aster", "runx"]
+    - area: "findings"
+      description: "Aggregate into docs/dogfood.md and the review file, with concrete recommendations."
+      owners: ["aster"]
+  risks:
+    - description: "A target repo rejects the upstream PR for external reasons, muddying the dogfood signal."
+      impact: "medium"
+      mitigation: "Select targets we maintain; treat external reject as a legitimate failure-path data point."
+    - description: "The approval gate blocks a chain unintentionally because of a real defect."
+      impact: "high"
+      mitigation: "Pause the chain, open a blocking-defect draft spec, resume after fix. Do not override --human-reviewed to bypass."
+    - description: "Hardcoded run ids accumulate in the spec, making it non-re-runnable (repeating the icey-cli dogfood smell)."
+      impact: "medium"
+      mitigation: "Record run ids in artefacts and the findings report, not in acceptance_criteria commands."
+    - description: "Receipt volume from three dogfood runs is too small to draw a real governed-receipts conclusion."
+      impact: "medium"
+      mitigation: "Supplement per-run receipts with the cumulative traffic already captured from live issue-triage and docs-pr lanes when analysing the pressure signal."
+  acceptance:
+    validation_profile: "standard"
+    definition_of_done:
+      - id: "dod1"
+        description: "Three upstream targets beyond icey-cli have a completed collaboration-record + skill-upstream + merge-watch chain."
+        status: "pending"
+      - id: "dod2"
+        description: "Every thread-teaching gate selector used in the dogfood (docs-pr.publish, fix-pr.publish, skill-upstream.publish) has been exercised with at least one allow and one fail-closed outcome."
+        status: "pending"
+      - id: "dod3"
+        description: "At least one non-happy-path outcome is recorded: closed-without-merge, failing-checks, or withdrawn authorization."
+        status: "pending"
+      - id: "dod4"
+        description: "Per-run receipt, journal, and evidence artefacts are captured under .artifacts/skill-upstream/, .artifacts/collaboration-record/, and .artifacts/merge-watch/."
+        status: "pending"
+      - id: "dod5"
+        description: "Any blocking defects surfaced during dogfood are either fixed inline (if they halt a chain) or captured as new draft specs with concrete reproduction steps."
+        status: "pending"
+      - id: "dod6"
+        description: "docs/dogfood.md is updated with per-target notes and the aggregate dogfood trajectory."
+        status: "pending"
+      - id: "dod7"
+        description: "Aggregate findings report in the review file states whether governed receipts or hosted memory should be built next, with evidence."
+        status: "pending"
+    validation:
+      - id: "v1"
+        type: "boundary"
+        description: "Three additional target directories exist under .artifacts/skill-upstream/ beyond icey-cli."
+        command: "ls .artifacts/skill-upstream/ | grep -v '^icey-cli$' | wc -l"
+        expected: "at least 3"
+      - id: "v2"
+        type: "boundary"
+        description: "Per-target collaboration-record packets exist."
+        command: "find .artifacts/collaboration-record -maxdepth 2 -name 'packet.json' | wc -l"
+        expected: "at least 3"
+      - id: "v3"
+        type: "boundary"
+        description: "Per-target merge-watch outputs exist."
+        command: "find .artifacts/merge-watch -maxdepth 2 -name 'skill_upstream_state.json' | wc -l"
+        expected: "at least 3"
+      - id: "v4"
+        type: "test"
+        description: "Thread-teaching state records authorizations for every selector exercised."
+        command: "node -e \"const s=require('./state/thread-teaching.json'); const sels=new Set(); for (const t of s.threads||[]) for (const r of t.records||[]) for (const a of r.applies_to||[]) sels.add(a); console.log([...sels].join(','));\""
+        expected: "includes docs-pr.publish, fix-pr.publish, skill-upstream.publish"
+      - id: "v5"
+        type: "documentation"
+        description: "docs/dogfood.md describes each target run."
+        command: "grep -c -E '^\\| [0-9]+ \\|' docs/dogfood.md"
+        expected: "at least 3 target rows"
+      - id: "v6"
+        type: "documentation"
+        description: "Aggregate findings include a next-move recommendation."
+        command: "grep -c -E 'Next move|Recommendation|Governed receipts|Hosted memory' .ai/reviews/dogfood-skill-chain-approval-gates.md"
+        expected: "recommendation section present"
+  constraints:
+    approvals_required: []
+    non_goals:
+      - "No code changes outside docs, spec, and fix-forward blockers"
+      - "No upstream automerge"
+      - "No new approval-gate features"
+      - "No governed-receipts surface work"
+      - "No hosted-memory substrate work"
+  info_sources:
+    - "docs/skill-upstream.md"
+    - "docs/run-catalog.md"
+    - "docs/dogfood.md"
+    - ".artifacts/skill-upstream/icey-cli/"
+    - "state/thread-teaching.json"
+    - ".ai/specs/archive/2026-04/aster-thread-teaching-cutover.yaml"
+    - ".ai/specs/archive/2026-04/governed-collaboration-surface-hardening.yaml"
+    - ".ai/specs/archive/2026-04/skill-contribution-watch-post-merge.yaml"
+  notes: >
+    Target shortlist (subject to phase-1 review): nilstate/icey (core library),
+    sourcey/sourcey (CLI + docs pipeline), nilstate/scafld or auscaster/scafld
+    (spec-driven CLI), sourcey/mcp-parser, nilstate/symple. Final set of
+    three is chosen in phase 1 based on current repo health and the
+    selectors we want to exercise. Each target should exercise a distinct
+    gate selector where possible.
+
+planning_log:
+  - timestamp: "2026-04-20T10:40:00Z"
+    actor: "user"
+    summary: "Scoped the dogfood round after the thread-teaching cutover and governed-collaboration hardening landed."
+  - timestamp: "2026-04-20T10:40:00Z"
+    actor: "agent"
+    summary: "Drafted the full dogfood spec covering target selection, three chain runs, intentional failure injection, receipt capture, and aggregate findings to inform the governed-receipts vs hosted-memory decision."
+
+  - timestamp: "2026-04-20T10:50:40Z"
+    actor: "cli"
+    summary: "Spec approved"
+  - timestamp: "2026-04-20T10:50:40Z"
+    actor: "cli"
+    summary: "Execution started"
+  - timestamp: "2026-04-20T11:08:01Z"
+    actor: "cli"
+    summary: "Spec cancelled"
+phases:
+  - id: "phase1"
+    name: "Target Selection And Chain Plan"
+    objective: >
+      Pick three upstream targets beyond icey-cli and document, per target,
+      which gate selector it will exercise, which outcome it will drive
+      (happy, closed-without-merge, failing-checks, or withdrawn
+      authorization), and what evidence should be captured. Also note
+      the discovered architecture constraint that skill-upstream.yml
+      writes to a flat .artifacts/skill-upstream/ so per-target capture
+      is done via `gh run download` post-run.
+    changes:
+      - file: "docs/dogfood.md"
+        action: "create"
+        lines: "all"
+        content_spec: |
+          Create the operator-facing dogfood log. Include an overview
+          paragraph, a "Skill-chain approval-gate dogfood" section
+          listing the three selected targets with a table (target,
+          selector, outcome, evidence path), a per-target chain plan
+          subsection, and a capture-convention subsection documenting
+          the `gh run download` post-run artefact move.
+    acceptance_criteria:
+      - id: "ac1_1"
+        type: "documentation"
+        description: "Three additional targets are selected with planned selector and outcome."
+        command: "bash -c 'n=$(grep -c -E \"docs-pr.publish|fix-pr.publish|skill-upstream.publish\" docs/dogfood.md); [ \"$n\" -ge 3 ] && echo ok || echo fail'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T10:53:13Z"
+        result_output: "ok"
+    status: "pending"
+
+  - id: "phase2"
+    name: "Target 1 Happy Path"
+    objective: >
+      Run the full skill-contribution chain on target 1 through the
+      happy path: collaboration issue authored, thread-teaching
+      authorization granted, skill-upstream workflow dispatched,
+      upstream PR opened and merged, merge-watch records acceptance,
+      public evidence published.
+    dependencies: ["phase1"]
+    changes:
+      - file: ".artifacts/skill-upstream/<target-1>/"
+        action: "create"
+        lines: "all"
+        content_spec: |
+          Per-target artefact bundle captured after the hosted
+          skill-upstream workflow completes. Because the workflow
+          writes to a flat .artifacts/skill-upstream/ directory, the
+          dogfood pulls the CI-uploaded artefact locally with
+          `gh run download <run-id> --name skill-upstream-<target-1>
+          --dir .artifacts/skill-upstream/<target-1>`. Contents:
+          SKILL.md, opportunity, research, candidate, contribution
+          packet, pr-body.md, public feed event.
+      - file: ".artifacts/merge-watch/<target-1>/"
+        action: "create"
+        lines: "all"
+        content_spec: |
+          Per-target watcher artefacts. Pulled down with
+          `gh run download <run-id> --name merge-watch-<target-1>
+          --dir .artifacts/merge-watch/<target-1>`. Contents:
+          skill_upstream_state.json (state accepted_upstream),
+          public_feed_event.json, registry_binding_request.json
+          if registered.
+      - file: ".artifacts/skill-upstream/<target-1>/run_metadata.json"
+        action: "create"
+        lines: "all"
+        content_spec: |
+          Dogfood-owned metadata file written locally per target so
+          replay commands read from known paths rather than live `gh`
+          queries. Schema: { target, upstream_repo, collaboration_issue_number,
+          upstream_pr_number, skill_upstream_run_id, merge_watch_run_id,
+          dispatched_at, outcome }.
+    acceptance_criteria:
+      - id: "ac2_1"
+        type: "boundary"
+        description: "Target 1 merge-watch records accepted_upstream in its named state file."
+        command: "jq -r '.state' .artifacts/merge-watch/<target-1>/skill_upstream_state.json"
+        expected: "accepted_upstream"
+      - id: "ac2_2"
+        type: "boundary"
+        description: "Target 1 run metadata captures the workflow run id."
+        command: "jq -r '.skill_upstream_run_id' .artifacts/skill-upstream/<target-1>/run_metadata.json"
+        expected: "numeric run id present"
+    status: "pending"
+
+  - id: "phase3"
+    name: "Target 2 Induced Failure Path"
+    objective: >
+      Run target 2 through an intentionally non-happy outcome. Options:
+      collaboration issue authored without publish_authorization record
+      (fail-closed at gate), or upstream PR closed-without-merge, or
+      required checks failing. Choose whichever gives the cleanest
+      fail-closed signal for our current stack.
+    dependencies: ["phase1"]
+    changes:
+      - file: ".artifacts/skill-upstream/<target-2>/"
+        action: "create"
+        lines: "all"
+        content_spec: |
+          Per-target artefact bundle captured after the hosted run,
+          pulled with `gh run download` as in phase 2. Includes
+          run_metadata.json with outcome field populated (one of
+          fail_closed_gate, closed_without_merge, failing_checks).
+      - file: ".artifacts/merge-watch/<target-2>/"
+        action: "create"
+        lines: "all"
+        content_spec: |
+          Per-target watcher output showing a non-happy state
+          (maintainer_review, rejected, or abandoned). Absent
+          entirely if the failure-injection path is fail-closed
+          at the gate before any upstream PR is opened.
+    acceptance_criteria:
+      - id: "ac3_1"
+        type: "boundary"
+        description: "Target 2 outcome field records a recognised non-happy path."
+        command: "jq -r '.outcome' .artifacts/skill-upstream/<target-2>/run_metadata.json"
+        expected: "one of fail_closed_gate, closed_without_merge, failing_checks"
+      - id: "ac3_2"
+        type: "boundary"
+        description: "Target 2 run metadata captures the workflow run id."
+        command: "jq -r '.skill_upstream_run_id' .artifacts/skill-upstream/<target-2>/run_metadata.json"
+        expected: "numeric run id present"
+    status: "pending"
+
+  - id: "phase4"
+    name: "Target 3 Edge Selector"
+    objective: >
+      Run target 3 to cover a gate selector not yet exercised by
+      targets 1 and 2 (e.g. if target 1 used skill-upstream.publish
+      and target 2 used fail-closed on skill-upstream.publish, target 3
+      should exercise fix-pr.publish or docs-pr.publish on a real
+      manual PR lane rather than only skill contribution).
+    dependencies: ["phase1"]
+    changes:
+      - file: ".artifacts/skill-upstream/<target-3>/"
+        action: "create"
+        lines: "all"
+        content_spec: |
+          Either a third skill-contribution run or a docs-pr/fix-pr
+          run, per the selector chosen in phase 1.
+      - file: "state/thread-teaching.json"
+        action: "update"
+        lines: "all"
+        content_spec: |
+          Derived state includes authorizations covering at least
+          docs-pr.publish, fix-pr.publish, and skill-upstream.publish
+          selectors across the three targets.
+    acceptance_criteria:
+      - id: "ac4_1"
+        type: "test"
+        description: "Thread-teaching state includes the three selectors."
+        command: "node -e \"const s=require('./state/thread-teaching.json'); const sels=new Set(); for (const t of s.threads||[]) for (const r of t.records||[]) for (const a of r.applies_to||[]) sels.add(a); for (const need of ['docs-pr.publish','fix-pr.publish','skill-upstream.publish']) if (!sels.has(need)) { console.error('missing',need); process.exit(1);} console.log('ok');\""
+        expected: "ok"
+    status: "pending"
+
+  - id: "phase5"
+    name: "Defect Triage"
+    objective: >
+      Catalogue every defect surfaced across targets 1-3. Fix
+      chain-halting blockers inline (with a minimal, scoped patch
+      in a follow-up draft-then-land sequence) and record
+      non-blocking defects as new draft specs with reproduction
+      steps drawn from captured artefacts.
+    dependencies: ["phase2", "phase3", "phase4"]
+    changes:
+      - file: ".ai/specs/drafts/"
+        action: "create"
+        lines: "all"
+        content_spec: |
+          One draft spec per non-blocking defect discovered, with
+          reproduction steps grounded in the captured .artifacts/*
+          paths.
+      - file: "docs/dogfood.md"
+        action: "update"
+        lines: "all"
+        content_spec: |
+          Add a defects section summarising each finding, severity,
+          and follow-up disposition (fixed inline, draft spec id, or
+          wontfix with reason).
+    acceptance_criteria:
+      - id: "ac5_1"
+        type: "documentation"
+        description: "Defects section is present in docs/dogfood.md."
+        command: "grep -c -E 'Defects surfaced|Defect triage' docs/dogfood.md"
+        expected: "defects section present"
+    status: "pending"
+
+  - id: "phase6"
+    name: "Aggregate Findings And Next-Move Recommendation"
+    objective: >
+      Aggregate receipt/journal volume, gate coverage, defects,
+      and time-to-merge into a findings report. State explicitly
+      whether governed receipts or hosted memory is the next
+      platform build, with evidence grounded in dogfood traffic.
+    dependencies: ["phase5"]
+    changes:
+      - file: ".ai/reviews/dogfood-skill-chain-approval-gates.md"
+        action: "create"
+        lines: "all"
+        content_spec: |
+          Fresh review file summarising the dogfood round: per-target
+          outcomes, selector coverage, defects, receipt volume, and
+          an explicit "Next move" recommendation between governed
+          receipts, hosted memory, and a third option with its
+          rationale. Keep the file in the standard scafld review
+          schema so the spec can archive cleanly.
+      - file: "docs/dogfood.md"
+        action: "update"
+        lines: "all"
+        content_spec: |
+          Append a "Trajectory and next move" section mirroring the
+          review file's recommendation so the call is documented in
+          the public operator docs.
+    acceptance_criteria:
+      - id: "ac6_1"
+        type: "documentation"
+        description: "Review file and dogfood.md both contain the next-move recommendation."
+        command: "grep -l -E 'Next move|Recommendation' .ai/reviews/dogfood-skill-chain-approval-gates.md docs/dogfood.md | wc -l"
+        expected: "2"
+    status: "pending"
+
+rollback:
+  strategy: "per_phase"
+  commands:
+    phase1: "git checkout HEAD -- docs/dogfood.md"
+    phase2: "rm -rf .artifacts/skill-upstream/<target-1> .artifacts/collaboration-record/<issue-1> .artifacts/merge-watch/<pr-1>"
+    phase3: "rm -rf .artifacts/skill-upstream/<target-2> .artifacts/collaboration-record/<issue-2> .artifacts/merge-watch/<pr-2>"
+    phase4: "rm -rf .artifacts/skill-upstream/<target-3> .artifacts/collaboration-record/<issue-3> .artifacts/merge-watch/<pr-3> && git checkout HEAD -- state/thread-teaching.json"
+    phase5: "git checkout HEAD -- docs/dogfood.md && rm -f .ai/specs/drafts/<follow-up-draft>.yaml"
+    phase6: "git checkout HEAD -- docs/dogfood.md && rm -f .ai/reviews/dogfood-skill-chain-approval-gates.md"

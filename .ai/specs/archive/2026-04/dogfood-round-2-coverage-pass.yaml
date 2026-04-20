@@ -1,0 +1,227 @@
+spec_version: "1.1"
+task_id: "dogfood-round-2-coverage-pass"
+created: "2026-04-20T13:31:57Z"
+updated: "2026-04-20T13:55:45Z"
+status: "completed"
+harden_status: "not_run"
+
+task:
+  title: "Dogfood round 2: negative-case coverage across 9 single-case skills"
+  summary: >
+    Round-1 catalog sweep (cycle 6) identified 9 skills whose
+    runx harness carries only a single happy-path fixture:
+    objective-to-skill, evaluate-skill, research,
+    market-intelligence, content-pipeline, open-source-triage,
+    ecosystem-vuln-scan, moltbook-presence, scafld. Round 2
+    adds one negative / boundary fixture to each, so regressions
+    in input validation or error reporting become visible at
+    harness time instead of production.
+
+    The right-sized fixture for each skill is a `missing-required-input`
+    or `invalid-enum` case that asserts `status: needs_resolution`
+    or a specific failure shape. Round 2 is one batched spec:
+    nine small similar edits landed together.
+  size: "large"
+  risk_level: "low"
+  context:
+    packages:
+      - "../runx/oss/skills"
+      - ".artifacts/dogfood-cycles"
+      - "docs"
+    files_impacted:
+      - path: "../runx/oss/skills/objective-to-skill/X.yaml"
+        lines: "as-needed"
+      - path: "../runx/oss/skills/evaluate-skill/X.yaml"
+        lines: "as-needed"
+      - path: "../runx/oss/skills/research/X.yaml"
+        lines: "as-needed"
+      - path: "../runx/oss/skills/market-intelligence/X.yaml"
+        lines: "as-needed"
+      - path: "../runx/oss/skills/content-pipeline/X.yaml"
+        lines: "as-needed"
+      - path: "../runx/oss/skills/open-source-triage/X.yaml"
+        lines: "as-needed"
+      - path: "../runx/oss/skills/ecosystem-vuln-scan/X.yaml"
+        lines: "as-needed"
+      - path: "../runx/oss/skills/moltbook-presence/X.yaml"
+        lines: "as-needed"
+      - path: "../runx/oss/skills/scafld/X.yaml"
+        lines: "as-needed"
+      - path: "docs/dogfood.md"
+        lines: "as-needed"
+    invariants:
+      - "no_cycle_is_a_no_op"
+      - "every_targeted_skill_gets_one_new_fixture"
+    cwd: "/home/kam/dev/aster"
+  objectives:
+    - "Add one negative / boundary harness fixture to each of the 9 single-case skills."
+    - "Confirm every harness still passes."
+    - "Flip the 9 catalog rows from `surveyed` to `dogfooded` in docs/dogfood.md."
+    - "Record a single round-2 cycle metadata artefact."
+  scope:
+    in_scope:
+      - "Per-skill harness edits in runx/oss/skills/*/X.yaml."
+      - "docs/dogfood.md catalog + cycle log + pressure rows."
+    out_of_scope:
+      - "SKILL.md edits."
+      - "Chain or runner changes."
+      - "Kernel changes."
+  dependencies:
+    - "Round 1 close (cycle 6) landed."
+  assumptions:
+    - "Each of the 9 skills supports a meaningful missing-input or invalid-input fixture."
+  touchpoints:
+    - area: "harness coverage"
+      description: "Nine bounded fixture additions."
+      owners: ["runx"]
+    - area: "campaign"
+      description: "Round 2 close in docs/dogfood.md."
+      owners: ["aster"]
+  risks:
+    - description: "A skill's needs_resolution signal is different from expected (e.g. it uses failure instead)."
+      impact: "low"
+      mitigation: "Match expected.status to whatever runx harness produces; the fixture locks in actual behaviour rather than aspirational behaviour."
+    - description: "One skill's edit breaks another via shared context."
+      impact: "low"
+      mitigation: "Skills are independent; verified by the full-catalog sweep at the end."
+  acceptance:
+    validation_profile: "standard"
+    definition_of_done:
+      - id: "dod1"
+        description: "Each of the 9 skills has one new fixture."
+        status: "pending"
+      - id: "dod2"
+        description: "Every skill's harness still passes."
+        status: "pending"
+      - id: "dod3"
+        description: "docs/dogfood.md reflects round 2 close."
+        status: "pending"
+    validation:
+      - id: "v1"
+        type: "test"
+        description: "All 9 round-2 skills have at least 2 harness cases."
+        command: "bash -c 'cd ../runx && fail=0; for s in objective-to-skill evaluate-skill research market-intelligence content-pipeline open-source-triage ecosystem-vuln-scan moltbook-presence scafld; do n=$(runx harness oss/skills/$s --json 2>/dev/null | jq \"[.cases[] | .fixture.name] | length\"); [ \"$n\" -ge 2 ] || { echo $s cases=$n; fail=1; }; done; [ $fail -eq 0 ] && echo ok || echo fail'"
+        expected: "ok"
+      - id: "v2"
+        type: "test"
+        description: "Every skill in the catalog has passing harness."
+        command: "bash -c 'cd ../runx && fail=0; for d in oss/skills/*/; do s=$(runx harness \"$d\" --json 2>/dev/null | jq -r .status); [ \"$s\" = success ] || { echo $d status=$s; fail=1; }; done; [ $fail -eq 0 ] && echo ok || echo fail'"
+        expected: "ok"
+      - id: "v3"
+        type: "documentation"
+        description: "docs/dogfood.md references the round-2 spec."
+        command: "bash -c 'n=$(grep -c dogfood-round-2-coverage-pass docs/dogfood.md); [ \"$n\" -ge 2 ] && echo ok || echo fail'"
+        expected: "ok"
+  constraints:
+    approvals_required: []
+    non_goals:
+      - "No SKILL.md edits"
+      - "No runner changes"
+
+planning_log:
+  - timestamp: "2026-04-20T13:31:57Z"
+    actor: "agent"
+    summary: "Authored after cycle 6 catalog audit surfaced the 1-case pattern."
+
+  - timestamp: "2026-04-20T13:52:42Z"
+    actor: "cli"
+    summary: "Spec approved"
+  - timestamp: "2026-04-20T13:52:42Z"
+    actor: "cli"
+    summary: "Execution started"
+  - timestamp: "2026-04-20T13:55:45Z"
+    actor: "cli"
+    summary: "Spec completed"
+phases:
+  - id: "phase1"
+    name: "Add fixtures across 9 skills"
+    objective: "One negative / boundary fixture per skill."
+    changes:
+      - file: "../runx/oss/skills/objective-to-skill/X.yaml"
+        action: "update"
+        lines: "as-needed"
+      - file: "../runx/oss/skills/evaluate-skill/X.yaml"
+        action: "update"
+        lines: "as-needed"
+      - file: "../runx/oss/skills/research/X.yaml"
+        action: "update"
+        lines: "as-needed"
+      - file: "../runx/oss/skills/market-intelligence/X.yaml"
+        action: "update"
+        lines: "as-needed"
+      - file: "../runx/oss/skills/content-pipeline/X.yaml"
+        action: "update"
+        lines: "as-needed"
+      - file: "../runx/oss/skills/open-source-triage/X.yaml"
+        action: "update"
+        lines: "as-needed"
+      - file: "../runx/oss/skills/ecosystem-vuln-scan/X.yaml"
+        action: "update"
+        lines: "as-needed"
+      - file: "../runx/oss/skills/moltbook-presence/X.yaml"
+        action: "update"
+        lines: "as-needed"
+      - file: "../runx/oss/skills/scafld/X.yaml"
+        action: "update"
+        lines: "as-needed"
+    acceptance_criteria:
+      - id: "ac1_1"
+        type: "test"
+        description: "All 9 skills have at least 2 harness cases and pass."
+        command: "bash -c 'cd ../runx && fail=0; for s in objective-to-skill evaluate-skill research market-intelligence content-pipeline open-source-triage ecosystem-vuln-scan moltbook-presence scafld; do out=$(runx harness oss/skills/$s --json 2>/dev/null); st=$(echo \"$out\" | jq -r .status); n=$(echo \"$out\" | jq \"[.cases[] | .fixture.name] | length\"); [ \"$st\" = success ] && [ \"$n\" -ge 2 ] || { echo $s status=$st cases=$n; fail=1; }; done; [ $fail -eq 0 ] && echo ok || echo fail'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T13:55:03Z"
+        result_output: "ok"
+    status: "pending"
+
+  - id: "phase2"
+    name: "Record round-2 close"
+    objective: "Update docs/dogfood.md catalog rows + round-2 note."
+    dependencies: ["phase1"]
+    changes:
+      - file: "docs/dogfood.md"
+        action: "update"
+        lines: "as-needed"
+        content_spec: |
+          Flip the 9 round-2 catalog rows from surveyed to dogfooded, add a round-2 close note, update pressure-signals.
+    acceptance_criteria:
+      - id: "ac2_1"
+        type: "documentation"
+        description: "docs/dogfood.md references round 2."
+        command: "bash -c 'n=$(grep -c dogfood-round-2-coverage-pass docs/dogfood.md); [ \"$n\" -ge 2 ] && echo ok || echo fail'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T13:55:03Z"
+        result_output: "ok"
+    status: "pending"
+
+rollback:
+  strategy: "per_phase"
+  commands:
+    phase1: "git -C ../runx/oss checkout HEAD -- skills/"
+    phase2: "git checkout HEAD -- docs/dogfood.md"
+
+review:
+  timestamp: "2026-04-20T13:55:11Z"
+  verdict: "pass"
+  review_rounds: 1
+  reviewer_mode: "executor"
+  reviewer_session: ""
+  round_status: "completed"
+  override_applied: false
+  override_reason: null
+  override_confirmed_at: null
+  passes:
+    - id: spec_compliance
+      result: "pass"
+    - id: scope_drift
+      result: "pass"
+    - id: regression_hunt
+      result: "pass"
+    - id: convention_check
+      result: "pass"
+    - id: dark_patterns
+      result: "pass"
+  blocking_count: 0
+  non_blocking_count: 0

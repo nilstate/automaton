@@ -1,0 +1,213 @@
+spec_version: "1.1"
+task_id: "runx-skill-version-convention"
+created: "2026-04-20T13:31:57Z"
+updated: "2026-04-20T13:44:32Z"
+status: "completed"
+harden_status: "not_run"
+
+task:
+  title: "Add version field convention to runx skills"
+  summary: >
+    Cycle 1 of the dogfood campaign discovered that runx skills
+    have no versioning convention: neither SKILL.md frontmatter
+    nor X.yaml carries a `version:` field. The campaign's
+    `version_bump_on_change` invariant currently falls back to
+    the oss/ submodule git sha, which is coarse and unrelated to
+    individual skill evolution.
+
+    This spec adds a `version:` field to every skill's X.yaml at
+    the top level, initialised to "0.1.0", and documents the
+    convention in the runx skills README (or a new section in the
+    canonical location).
+
+    Future skill changes bump the version in the same commit as
+    the content change.
+  size: "medium"
+  risk_level: "low"
+  context:
+    packages:
+      - "../runx/oss/skills"
+    files_impacted:
+      - path: "../runx/oss/skills/*/X.yaml"
+        lines: "top"
+        reason: "Add a version field per skill."
+      - path: "../runx/oss/skills/README.md or equivalent"
+        lines: "as-needed"
+        reason: "Document the convention."
+    invariants:
+      - "bounded_improvement_per_cycle"
+      - "every_skill_gets_the_field"
+    cwd: "/home/kam/dev/aster"
+  objectives:
+    - "Add `version: 0.1.0` to every X.yaml in runx/oss/skills/."
+    - "Document the convention (when to bump, who owns the bump)."
+    - "Confirm all harnesses still pass."
+  scope:
+    in_scope:
+      - "Editing every X.yaml in runx/oss/skills/."
+      - "Adding a convention doc."
+    out_of_scope:
+      - "Enforcing version bumps via CI."
+      - "Tooling changes to runx CLI to expose the version."
+      - "Back-dating versions based on git history."
+  dependencies:
+    - "Runx harness still passing after each edit."
+  assumptions:
+    - "`runx harness` tolerates an unknown top-level YAML field (version)."
+    - "Initial 0.1.0 is acceptable for all existing skills since none has a prior declared version."
+  touchpoints:
+    - area: "skill catalog"
+      description: "Every X.yaml gains a version field."
+      owners: ["runx"]
+    - area: "docs"
+      description: "Convention documented in runx."
+      owners: ["runx"]
+  risks:
+    - description: "Adding an unknown top-level field to X.yaml breaks the runx loader."
+      impact: "medium"
+      mitigation: "Test on one skill first; if the loader rejects it, put the field under a namespaced section (`metadata.version`) instead."
+    - description: "Convention doc lands in a location peers do not discover."
+      impact: "low"
+      mitigation: "Place doc at `runx/oss/skills/VERSIONING.md` next to the skills, cross-linked from plans/runx.md."
+  acceptance:
+    validation_profile: "standard"
+    definition_of_done:
+      - id: "dod1"
+        description: "Every skill in runx/oss/skills/ has a version field in X.yaml."
+        status: "pending"
+      - id: "dod2"
+        description: "A VERSIONING.md doc exists documenting when to bump."
+        status: "pending"
+      - id: "dod3"
+        description: "All harnesses still pass after the sweep."
+        status: "pending"
+    validation:
+      - id: "v1"
+        type: "test"
+        description: "Every skill X.yaml declares a version."
+        command: "bash -c 'cd ../runx/oss/skills && missing=0; for d in */; do [ -f \"$d/X.yaml\" ] || continue; grep -q \"^version:\" \"$d/X.yaml\" || { echo missing: $d; missing=1; }; done; [ $missing -eq 0 ] && echo ok || echo fail'"
+        expected: "ok"
+      - id: "v2"
+        type: "test"
+        description: "VERSIONING.md exists."
+        command: "bash -c '[ -f ../runx/oss/skills/VERSIONING.md ] && echo ok || echo fail'"
+        expected: "ok"
+      - id: "v3"
+        type: "test"
+        description: "Every harness passes after the sweep."
+        command: "bash -c 'cd ../runx && fail=0; for d in oss/skills/*/; do s=$(runx harness \"$d\" --json 2>/dev/null | jq -r .status); [ \"$s\" = success ] || { echo $d status=$s; fail=1; }; done; [ $fail -eq 0 ] && echo ok || echo fail'"
+        expected: "ok"
+  constraints:
+    approvals_required: []
+    non_goals:
+      - "No semver enforcement in CI"
+      - "No CLI changes"
+      - "No backdating"
+
+planning_log:
+  - timestamp: "2026-04-20T13:31:57Z"
+    actor: "agent"
+    summary: "Authored after cycle 1 logged the missing-version-field finding."
+
+  - timestamp: "2026-04-20T13:41:54Z"
+    actor: "cli"
+    summary: "Spec approved"
+  - timestamp: "2026-04-20T13:41:54Z"
+    actor: "cli"
+    summary: "Execution started"
+  - timestamp: "2026-04-20T13:44:32Z"
+    actor: "cli"
+    summary: "Spec completed"
+phases:
+  - id: "phase1"
+    name: "Pilot on one skill"
+    objective: "Add version: 0.1.0 to improve-skill/X.yaml and confirm the harness still passes."
+    changes:
+      - file: "../runx/oss/skills/improve-skill/X.yaml"
+        action: "update"
+        lines: "top"
+        content_spec: |
+          Add `version: "0.1.0"` as a top-level field.
+    acceptance_criteria:
+      - id: "ac1_1"
+        type: "test"
+        description: "improve-skill harness passes with the new field."
+        command: "bash -c 'cd ../runx && runx harness oss/skills/improve-skill --json > /tmp/is-harness.json && s=$(jq -r .status /tmp/is-harness.json); [ \"$s\" = success ] && echo ok || echo fail'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T13:43:57Z"
+        result_output: "ok"
+    status: "pending"
+
+  - id: "phase2"
+    name: "Sweep remaining skills"
+    objective: "Add the version field to every other skill's X.yaml."
+    dependencies: ["phase1"]
+    changes:
+      - file: "../runx/oss/skills/*/X.yaml"
+        action: "update"
+        lines: "top"
+        content_spec: |
+          Add `version: "0.1.0"` as a top-level field in every remaining skill.
+    acceptance_criteria:
+      - id: "ac2_1"
+        type: "test"
+        description: "Every skill has the version field."
+        command: "bash -c 'cd ../runx/oss/skills && missing=0; for d in */; do [ -f \"$d/X.yaml\" ] || continue; grep -q \"^version:\" \"$d/X.yaml\" || { echo missing: $d; missing=1; }; done; [ $missing -eq 0 ] && echo ok || echo fail'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T13:43:57Z"
+        result_output: "ok"
+    status: "pending"
+
+  - id: "phase3"
+    name: "Document the convention"
+    objective: "Author runx/oss/skills/VERSIONING.md."
+    dependencies: ["phase2"]
+    changes:
+      - file: "../runx/oss/skills/VERSIONING.md"
+        action: "create"
+        lines: "all"
+        content_spec: |
+          Document: default 0.1.0 for new skills; bump patch on SKILL.md prompt tweaks or harness additions; bump minor on runner or output contract changes; bump major on chain redefinition.
+    acceptance_criteria:
+      - id: "ac3_1"
+        type: "test"
+        description: "VERSIONING.md exists."
+        command: "bash -c '[ -f ../runx/oss/skills/VERSIONING.md ] && echo ok || echo fail'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T13:43:57Z"
+        result_output: "ok"
+    status: "pending"
+
+rollback:
+  strategy: "per_phase"
+  commands:
+    phase1: "git -C ../runx/oss checkout HEAD -- skills/improve-skill/X.yaml"
+    phase2: "git -C ../runx/oss checkout HEAD -- skills/"
+    phase3: "rm -f ../runx/oss/skills/VERSIONING.md"
+
+review:
+  timestamp: "2026-04-20T13:44:05Z"
+  verdict: "pass"
+  review_rounds: 1
+  reviewer_mode: "executor"
+  reviewer_session: ""
+  round_status: "completed"
+  override_applied: false
+  override_reason: null
+  override_confirmed_at: null
+  passes:
+    - id: spec_compliance
+      result: "pass"
+    - id: scope_drift
+      result: "pass"
+    - id: regression_hunt
+      result: "pass"
+    - id: convention_check
+      result: "pass"
+    - id: dark_patterns
+      result: "pass"
+  blocking_count: 0
+  non_blocking_count: 0

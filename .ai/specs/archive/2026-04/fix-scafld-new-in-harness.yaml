@@ -1,0 +1,146 @@
+spec_version: "1.1"
+task_id: "fix-scafld-new-in-harness"
+created: "2026-04-20T13:31:56Z"
+updated: "2026-04-20T13:41:43Z"
+status: "completed"
+harden_status: "not_run"
+
+task:
+  title: "Make scafld new tolerate a bare cwd in runx harness"
+  summary: >
+    Cycle 5 surfaced that issue-to-pr's first step (scafld-new)
+    fails when the chain runs inside the runx harness sandbox
+    because the sandbox cwd is not a scafld workspace. The fix is
+    to prepend a `scafld init` step to the issue-to-pr chain;
+    scafld init is idempotent, so the step is a no-op in real
+    repos where the workspace already exists. After the fix,
+    cycle-5's harness case can expect `status: needs_resolution`
+    (caller cognitive-work hand-off) rather than locking in
+    `status: failure`.
+  size: "small"
+  risk_level: "low"
+  context:
+    packages:
+      - "../runx/oss/skills/issue-to-pr"
+    files_impacted:
+      - path: "../runx/oss/skills/issue-to-pr/X.yaml"
+        lines: "as-needed"
+        reason: "Prepend scafld-init step; update cycle-5 harness expectation."
+    invariants:
+      - "bounded_improvement_per_cycle"
+    cwd: "/home/kam/dev/aster"
+  objectives:
+    - "Prepend a scafld-init step to issue-to-pr's chain."
+    - "Update the cycle-5 harness case to expect `status: needs_resolution`."
+    - "Confirm `runx harness oss/skills/issue-to-pr` still passes."
+  scope:
+    in_scope:
+      - "Editing issue-to-pr X.yaml."
+    out_of_scope:
+      - "Changes to the scafld CLI itself."
+      - "Changes to runx harness sandbox setup."
+      - "Edits to other skills."
+  dependencies:
+    - "Runx harness runs `scafld init` successfully when invoked from the scafld skill wrapper."
+  assumptions:
+    - "scafld init is idempotent (verified manually)."
+    - "The scafld skill wrapper in runx accepts `command: init`."
+  touchpoints:
+    - area: "issue-to-pr"
+      description: "One new chain step, one fixture update."
+      owners: ["runx"]
+  risks:
+    - description: "scafld init inside the harness produces side effects that pollute the sandbox."
+      impact: "low"
+      mitigation: "The sandbox is torn down after each harness run."
+  acceptance:
+    validation_profile: "standard"
+    definition_of_done:
+      - id: "dod1"
+        description: "scafld-init step added before scafld-new."
+        status: "pending"
+      - id: "dod2"
+        description: "Harness case expects status: needs_resolution."
+        status: "pending"
+      - id: "dod3"
+        description: "Harness passes."
+        status: "pending"
+    validation:
+      - id: "v1"
+        type: "test"
+        description: "issue-to-pr harness still passes."
+        command: "bash -c 'cd ../runx && runx harness oss/skills/issue-to-pr --json > /tmp/itp-harness.json && s=$(jq -r .status /tmp/itp-harness.json); [ \"$s\" = success ] && echo ok || echo fail'"
+        expected: "ok"
+      - id: "v2"
+        type: "boundary"
+        description: "scafld-init step is present in the chain."
+        command: "bash -c 'grep -q \"id: scafld-init\" ../runx/oss/skills/issue-to-pr/X.yaml && echo ok || echo fail'"
+        expected: "ok"
+  constraints:
+    approvals_required: []
+    non_goals:
+      - "No scafld CLI changes"
+
+planning_log:
+  - timestamp: "2026-04-20T13:31:56Z"
+    actor: "agent"
+    summary: "Authored after cycle 5 logged the scafld-new harness-isolation follow-up."
+
+  - timestamp: "2026-04-20T13:36:11Z"
+    actor: "cli"
+    summary: "Spec approved"
+  - timestamp: "2026-04-20T13:36:12Z"
+    actor: "cli"
+    summary: "Execution started"
+  - timestamp: "2026-04-20T13:41:43Z"
+    actor: "cli"
+    summary: "Spec completed"
+phases:
+  - id: "phase1"
+    name: "Insert scafld-init step"
+    objective: "Add the init step before scafld-new; update harness expectation."
+    changes:
+      - file: "../runx/oss/skills/issue-to-pr/X.yaml"
+        action: "update"
+        lines: "as-needed"
+        content_spec: |
+          Add a scafld-init step (command: init) as the first entry in chain.steps, before scafld-new. Update the smoke-test harness case expect.status from failure to needs_resolution.
+    acceptance_criteria:
+      - id: "ac1_1"
+        type: "test"
+        description: "Harness passes and scafld-init step is present."
+        command: "bash -c 'cd ../runx && grep -q \"id: scafld-init\" oss/skills/issue-to-pr/X.yaml && runx harness oss/skills/issue-to-pr --json > /tmp/itp-harness.json && s=$(jq -r .status /tmp/itp-harness.json); [ \"$s\" = success ] && echo ok || echo fail'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T13:40:44Z"
+        result_output: "ok"
+    status: "pending"
+
+rollback:
+  strategy: "per_phase"
+  commands:
+    phase1: "git -C ../runx/oss checkout HEAD -- skills/issue-to-pr/X.yaml"
+
+review:
+  timestamp: "2026-04-20T13:40:49Z"
+  verdict: "pass_with_issues"
+  review_rounds: 1
+  reviewer_mode: "executor"
+  reviewer_session: ""
+  round_status: "completed"
+  override_applied: false
+  override_reason: null
+  override_confirmed_at: null
+  passes:
+    - id: spec_compliance
+      result: "pass"
+    - id: scope_drift
+      result: "pass"
+    - id: regression_hunt
+      result: "pass"
+    - id: convention_check
+      result: "pass"
+    - id: dark_patterns
+      result: "pass_with_issues"
+  blocking_count: 0
+  non_blocking_count: 2

@@ -141,7 +141,7 @@ const required = [
   ".github/workflows/skill-upstream.yml",
   ".github/workflows/merge-watch.yml",
   ".github/ISSUE_TEMPLATE/collaboration.yml",
-  ".ai/specs/active/evidence-projection-derive-cutover.yaml",
+  ".ai/specs/archive/2026-04/evidence-projection-derive-cutover.yaml",
 ];
 
 for (const relativePath of required) {

@@ -1,0 +1,172 @@
+spec_version: "1.1"
+task_id: "dogfood-cycle-7-issue-to-pr-deep"
+created: "2026-04-20T13:31:57Z"
+updated: "2026-04-20T13:52:25Z"
+status: "failed"
+harden_status: "not_run"
+
+task:
+  title: "Dogfood cycle 7: extend issue-to-pr harness coverage"
+  summary: >
+    Cycle 5 added a single smoke-test fixture to issue-to-pr's
+    harness. That guards against loader and input-resolution
+    regressions but not against regressions in the chain's
+    cognitive-work or mutation steps. This cycle extends
+    coverage with one more bounded fixture exercising the
+    `author-spec` agent-step with canned caller answers, so a
+    regression in how context flows between `scafld-new` and
+    `author-spec` becomes visible at harness time.
+
+    Depends on `fix-scafld-new-in-harness` landing first so the
+    chain's first step succeeds in the harness sandbox.
+  size: "medium"
+  risk_level: "low"
+  context:
+    packages:
+      - "../runx/oss/skills/issue-to-pr"
+      - ".artifacts/dogfood-cycles"
+      - "docs"
+    files_impacted:
+      - path: "../runx/oss/skills/issue-to-pr/X.yaml"
+        lines: "as-needed"
+        reason: "Add a second harness case exercising author-spec."
+      - path: ".artifacts/dogfood-cycles/dogfood-cycle-7-issue-to-pr-deep/"
+        lines: "all"
+        reason: "Evidence bundle."
+      - path: "docs/dogfood.md"
+        lines: "as-needed"
+        reason: "Cycle log + pressure rows."
+    invariants:
+      - "bounded_improvement_per_cycle"
+      - "no_cycle_is_a_no_op"
+    cwd: "/home/kam/dev/aster"
+  objectives:
+    - "Add one harness case exercising author-spec with canned caller answers."
+    - "Confirm both harness cases pass."
+    - "Record in docs/dogfood.md."
+  scope:
+    in_scope:
+      - "Editing issue-to-pr X.yaml harness."
+      - "Updating docs/dogfood.md."
+    out_of_scope:
+      - "Full end-to-end PR-publish coverage."
+      - "Other skills."
+  dependencies:
+    - "fix-scafld-new-in-harness complete (cycle-7 depends on the chain reaching past scafld-new in the sandbox)."
+  assumptions:
+    - "Canned caller answers for author-spec are stable against the skill prompt."
+  touchpoints:
+    - area: "issue-to-pr"
+      description: "One more harness case."
+      owners: ["runx"]
+  risks:
+    - description: "Canned answers drift when author-spec's prompt changes."
+      impact: "low"
+      mitigation: "Keep answers minimal; accept occasional maintenance cost."
+  acceptance:
+    validation_profile: "standard"
+    definition_of_done:
+      - id: "dod1"
+        description: "Second harness case added."
+        status: "pending"
+      - id: "dod2"
+        description: "Both cases pass."
+        status: "pending"
+      - id: "dod3"
+        description: "Evidence bundle complete."
+        status: "pending"
+      - id: "dod4"
+        description: "docs/dogfood.md updated."
+        status: "pending"
+    validation:
+      - id: "v1"
+        type: "test"
+        description: "Harness passes."
+        command: "bash -c 'cd ../runx && runx harness oss/skills/issue-to-pr --json > /tmp/itp-harness.json && s=$(jq -r .status /tmp/itp-harness.json); [ \"$s\" = success ] && echo ok || echo fail'"
+        expected: "ok"
+      - id: "v2"
+        type: "test"
+        description: "Two harness cases present."
+        command: "bash -c 'cd ../runx && n=$(runx harness oss/skills/issue-to-pr --json | jq \"[.cases[] | .fixture.name] | length\"); [ \"$n\" -ge 2 ] && echo ok || echo fail'"
+        expected: "ok"
+      - id: "v3"
+        type: "documentation"
+        description: "docs/dogfood.md references cycle 7."
+        command: "bash -c 'n=$(grep -c dogfood-cycle-7-issue-to-pr-deep docs/dogfood.md); [ \"$n\" -ge 2 ] && echo ok || echo fail'"
+        expected: "ok"
+  constraints:
+    approvals_required: []
+    non_goals:
+      - "No full PR-publish coverage"
+
+planning_log:
+  - timestamp: "2026-04-20T13:31:57Z"
+    actor: "agent"
+    summary: "Cycle 7 drafted after cycle 5 flagged issue-to-pr harness as smoke-only."
+
+  - timestamp: "2026-04-20T13:50:11Z"
+    actor: "cli"
+    summary: "Spec approved"
+  - timestamp: "2026-04-20T13:50:11Z"
+    actor: "cli"
+    summary: "Execution started"
+  - timestamp: "2026-04-20T13:52:25Z"
+    actor: "cli"
+    summary: "Spec marked failed"
+phases:
+  - id: "phase1"
+    name: "Add second harness case"
+    objective: "Add a fixture exercising author-spec with canned caller answers."
+    changes:
+      - file: "../runx/oss/skills/issue-to-pr/X.yaml"
+        action: "update"
+        lines: "as-needed"
+        content_spec: |
+          New harness case `issue-to-pr-author-spec-happy-path` with caller answers for agent_step.issue-to-pr-author-spec.output (spec_draft, spec_contents).
+    acceptance_criteria:
+      - id: "ac1_1"
+        type: "test"
+        description: "Harness has two cases and passes."
+        command: "bash -c 'cd ../runx && n=$(runx harness oss/skills/issue-to-pr --json | jq \"[.cases[] | .fixture.name] | length\"); [ \"$n\" -ge 2 ] && echo ok || echo fail'"
+        expected: "ok"
+    status: "pending"
+
+  - id: "phase2"
+    name: "Record cycle"
+    objective: "Write evidence bundle + update docs."
+    dependencies: ["phase1"]
+    changes:
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-7-issue-to-pr-deep/objective.md"
+        action: "create"
+        lines: "all"
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-7-issue-to-pr-deep/receipt.json"
+        action: "create"
+        lines: "all"
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-7-issue-to-pr-deep/diagnosis.json"
+        action: "create"
+        lines: "all"
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-7-issue-to-pr-deep/improvement.md"
+        action: "create"
+        lines: "all"
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-7-issue-to-pr-deep/patch.diff"
+        action: "create"
+        lines: "all"
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-7-issue-to-pr-deep/cycle_metadata.json"
+        action: "create"
+        lines: "all"
+      - file: "docs/dogfood.md"
+        action: "update"
+        lines: "as-needed"
+    acceptance_criteria:
+      - id: "ac2_1"
+        type: "documentation"
+        description: "docs/dogfood.md references cycle 7 at least twice."
+        command: "bash -c 'n=$(grep -c dogfood-cycle-7-issue-to-pr-deep docs/dogfood.md); [ \"$n\" -ge 2 ] && echo ok || echo fail'"
+        expected: "ok"
+    status: "pending"
+
+rollback:
+  strategy: "per_phase"
+  commands:
+    phase1: "git -C ../runx/oss checkout HEAD -- skills/issue-to-pr/X.yaml"
+    phase2: "git checkout HEAD -- docs/dogfood.md && rm -rf .artifacts/dogfood-cycles/dogfood-cycle-7-issue-to-pr-deep"

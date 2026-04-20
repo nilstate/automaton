@@ -1,0 +1,195 @@
+spec_version: "1.1"
+task_id: "dogfood-cycle-10-sweep-final"
+created: "2026-04-20T14:35:17Z"
+updated: "2026-04-20T14:41:42Z"
+status: "completed"
+harden_status: "not_run"
+
+task:
+  title: "Dogfood cycle 10: close harness gaps for skill-testing + sourcey"
+  summary: >
+    Round 2 targeted nine skills that had only one harness case. A
+    fuller sweep surfaced two more with the same gap: skill-testing
+    and sourcey. Cycle 10 adds a negative/boundary fixture to each
+    so every catalog skill carries at least two harness cases.
+  size: "small"
+  risk_level: "low"
+  context:
+    packages:
+      - "../runx/oss/skills/skill-testing"
+      - "../runx/oss/skills/sourcey"
+      - "docs"
+    files_impacted:
+      - path: "../runx/oss/skills/skill-testing/X.yaml"
+        lines: "as-needed"
+      - path: "../runx/oss/skills/sourcey/X.yaml"
+        lines: "as-needed"
+      - path: ".artifacts/dogfood-cycles/dogfood-cycle-10-sweep-final/"
+        lines: "all"
+      - path: "docs/dogfood.md"
+        lines: "as-needed"
+    invariants:
+      - "bounded_improvement_per_cycle"
+      - "no_cycle_is_a_no_op"
+    cwd: "/home/kam/dev/aster"
+  objectives:
+    - "Add a second harness case to skill-testing and sourcey."
+    - "Verify every catalog skill's harness is at least 2 cases, status success."
+    - "Record in docs/dogfood.md."
+  scope:
+    in_scope:
+      - "Editing two X.yaml files."
+      - "Updating docs/dogfood.md."
+    out_of_scope:
+      - "Chain or SKILL.md changes."
+      - "Kernel changes."
+  dependencies:
+    - "Cycle 9 landed (harness sandbox fix in place)."
+  assumptions:
+    - "Both skills accept minimal/no-input fixtures that exit needs_resolution."
+  touchpoints:
+    - area: "harness coverage"
+      description: "Two more skills flipped from 1 case to 2."
+      owners: ["runx"]
+  risks:
+    - description: "Skill rejects empty input schema in an unexpected way."
+      impact: "low"
+      mitigation: "Lock expected status to actual observed behaviour."
+  acceptance:
+    validation_profile: "standard"
+    definition_of_done:
+      - id: "dod1"
+        description: "skill-testing has 2 cases."
+        status: "pending"
+      - id: "dod2"
+        description: "sourcey has 2 cases."
+        status: "pending"
+      - id: "dod3"
+        description: "Every catalog skill with an X.yaml has at least 2 passing cases."
+        status: "pending"
+      - id: "dod4"
+        description: "docs/dogfood.md updated."
+        status: "pending"
+    validation:
+      - id: "v1"
+        type: "test"
+        description: "skill-testing and sourcey harnesses pass with 2 cases."
+        command: "bash -c 'cd ../runx && ok=1; for s in skill-testing sourcey; do n=$(runx harness oss/skills/$s --json 2>/dev/null | jq \"[.cases[] | .fixture.name] | length\"); st=$(runx harness oss/skills/$s --json 2>/dev/null | jq -r .status); [ \"$st\" = success ] && [ \"$n\" -ge 2 ] || ok=0; done; [ $ok -eq 1 ] && echo ok || echo fail'"
+        expected: "ok"
+      - id: "v2"
+        type: "test"
+        description: "Every catalog skill with an X.yaml passes harness."
+        command: "bash -c 'cd ../runx && fail=0; for d in oss/skills/*/; do [ -f \"$d/X.yaml\" ] || continue; s=$(runx harness \"$d\" --json 2>/dev/null | jq -r .status); [ \"$s\" = success ] || fail=1; done; [ $fail -eq 0 ] && echo ok || echo fail'"
+        expected: "ok"
+      - id: "v3"
+        type: "documentation"
+        description: "docs/dogfood.md references cycle 10."
+        command: "bash -c 'n=$(grep -c dogfood-cycle-10-sweep-final docs/dogfood.md); [ \"$n\" -ge 2 ] && echo ok || echo fail'"
+        expected: "ok"
+  constraints:
+    approvals_required: []
+    non_goals:
+      - "No kernel changes"
+
+planning_log:
+  - timestamp: "2026-04-20T14:35:17Z"
+    actor: "agent"
+    summary: "Authored after full-catalog harness sweep surfaced skill-testing + sourcey as missed by round 2."
+
+  - timestamp: "2026-04-20T14:37:24Z"
+    actor: "cli"
+    summary: "Spec approved"
+  - timestamp: "2026-04-20T14:37:24Z"
+    actor: "cli"
+    summary: "Execution started"
+  - timestamp: "2026-04-20T14:41:42Z"
+    actor: "cli"
+    summary: "Spec completed"
+phases:
+  - id: "phase1"
+    name: "Add fixtures"
+    objective: "One boundary case per skill."
+    changes:
+      - file: "../runx/oss/skills/skill-testing/X.yaml"
+        action: "update"
+        lines: "as-needed"
+      - file: "../runx/oss/skills/sourcey/X.yaml"
+        action: "update"
+        lines: "as-needed"
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-10-sweep-final/patch.diff"
+        action: "create"
+        lines: "all"
+    acceptance_criteria:
+      - id: "ac1_1"
+        type: "test"
+        description: "Both skills have 2 passing cases."
+        command: "bash -c 'cd ../runx && ok=1; for s in skill-testing sourcey; do n=$(runx harness oss/skills/$s --json 2>/dev/null | jq \"[.cases[] | .fixture.name] | length\"); st=$(runx harness oss/skills/$s --json 2>/dev/null | jq -r .status); [ \"$st\" = success ] && [ \"$n\" -ge 2 ] || ok=0; done; [ $ok -eq 1 ] && echo ok || echo fail'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T14:41:07Z"
+        result_output: "ok"
+    status: "pending"
+
+  - id: "phase2"
+    name: "Record cycle"
+    objective: "Evidence + docs."
+    dependencies: ["phase1"]
+    changes:
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-10-sweep-final/objective.md"
+        action: "create"
+        lines: "all"
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-10-sweep-final/receipt.json"
+        action: "create"
+        lines: "all"
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-10-sweep-final/diagnosis.json"
+        action: "create"
+        lines: "all"
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-10-sweep-final/improvement.md"
+        action: "create"
+        lines: "all"
+      - file: ".artifacts/dogfood-cycles/dogfood-cycle-10-sweep-final/cycle_metadata.json"
+        action: "create"
+        lines: "all"
+      - file: "docs/dogfood.md"
+        action: "update"
+        lines: "as-needed"
+    acceptance_criteria:
+      - id: "ac2_1"
+        type: "documentation"
+        description: "docs/dogfood.md references cycle 10 twice."
+        command: "bash -c 'n=$(grep -c dogfood-cycle-10-sweep-final docs/dogfood.md); [ \"$n\" -ge 2 ] && echo ok || echo fail'"
+        expected: "ok"
+        result: "pass"
+        executed_at: "2026-04-20T14:41:07Z"
+        result_output: "ok"
+    status: "pending"
+
+rollback:
+  strategy: "per_phase"
+  commands:
+    phase1: "git -C ../runx/oss checkout HEAD -- skills/skill-testing/X.yaml skills/sourcey/X.yaml && rm -f .artifacts/dogfood-cycles/dogfood-cycle-10-sweep-final/patch.diff"
+    phase2: "git checkout HEAD -- docs/dogfood.md && rm -rf .artifacts/dogfood-cycles/dogfood-cycle-10-sweep-final"
+
+review:
+  timestamp: "2026-04-20T14:41:14Z"
+  verdict: "pass"
+  review_rounds: 1
+  reviewer_mode: "executor"
+  reviewer_session: ""
+  round_status: "completed"
+  override_applied: false
+  override_reason: null
+  override_confirmed_at: null
+  passes:
+    - id: spec_compliance
+      result: "pass"
+    - id: scope_drift
+      result: "pass"
+    - id: regression_hunt
+      result: "pass"
+    - id: convention_check
+      result: "pass"
+    - id: dark_patterns
+      result: "pass"
+  blocking_count: 0
+  non_blocking_count: 0

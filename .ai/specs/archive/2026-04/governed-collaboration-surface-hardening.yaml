@@ -1,7 +1,7 @@
 spec_version: "1.1"
 task_id: "governed-collaboration-surface-hardening"
 created: "2026-04-20T05:45:00Z"
-updated: "2026-04-20T08:05:00Z"
+updated: "2026-04-20T10:26:51Z"
 status: "completed"
 
 task:
@@ -104,6 +104,9 @@ planning_log:
       PR publication from the issue-triage workflow pending a redesign that
       treats receipts and uploaded artifacts as canonical evidence.
 
+  - timestamp: "2026-04-20T10:26:51Z"
+    actor: "cli"
+    summary: "Spec completed"
 phases:
   - id: "phase1"
     name: "Collaboration Surface Split"
@@ -170,3 +173,27 @@ rollback:
     phase2: "git checkout HEAD -- scripts/check-issue-triage-pr-policy.mjs scripts/check-issue-triage-pr-policy.test.mjs scripts/generated-pr-policy.mjs"
     phase3: "git checkout HEAD -- .github/workflows/docs-pr.yml .github/workflows/fix-pr.yml .github/workflows/issue-triage.yml .github/workflows/skill-lab.yml scripts/runx-agent-bridge.mjs"
     phase4: "git checkout HEAD -- docs/operations.md docs/flows.md docs/run-catalog.md docs/operating-model.md"
+
+review:
+  timestamp: "2026-04-20T20:10:00Z"
+  verdict: "pass_with_issues"
+  review_rounds: 1
+  reviewer_mode: "fresh_agent"
+  reviewer_session: ""
+  round_status: "completed"
+  override_applied: false
+  override_reason: null
+  override_confirmed_at: null
+  passes:
+    - id: spec_compliance
+      result: "pass"
+    - id: scope_drift
+      result: "pass"
+    - id: regression_hunt
+      result: "pass"
+    - id: convention_check
+      result: "pass"
+    - id: dark_patterns
+      result: "pass_with_issues"
+  blocking_count: 0
+  non_blocking_count: 1

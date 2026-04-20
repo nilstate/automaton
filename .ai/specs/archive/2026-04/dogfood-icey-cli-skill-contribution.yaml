@@ -1,8 +1,8 @@
 spec_version: "1.1"
 task_id: "dogfood-icey-cli-skill-contribution"
 created: "2026-04-16T00:57:01Z"
-updated: "2026-04-16T01:12:05Z"
-status: "in_progress"
+updated: "2026-04-20T10:21:18Z"
+status: "completed"
 
 task:
   title: "Dogfood skill contribution on nilstate icey-cli"
@@ -189,6 +189,9 @@ planning_log:
   - timestamp: "2026-04-16T01:12:05Z"
     actor: "agent"
     summary: "Upstream nilstate/icey-cli PR CI completed successfully; linux check passed in 7m15s."
+  - timestamp: "2026-04-20T10:21:18Z"
+    actor: "cli"
+    summary: "Spec completed"
 phases:
   - id: "phase1"
     name: "Local preflight"
@@ -312,3 +315,27 @@ rollback:
     phase2: "gh pr close 2 --repo nilstate/icey-cli --comment 'Closing dogfood draft PR by operator request.'"
     phase3: "gh run cancel <run-id> --repo auscaster/aster"
     phase4: "No code rollback; record failed evidence state."
+
+review:
+  timestamp: "2026-04-20T10:19:48Z"
+  verdict: "pass_with_issues"
+  review_rounds: 1
+  reviewer_mode: "fresh_agent"
+  reviewer_session: ""
+  round_status: "completed"
+  override_applied: false
+  override_reason: null
+  override_confirmed_at: null
+  passes:
+    - id: spec_compliance
+      result: "pass"
+    - id: scope_drift
+      result: "pass"
+    - id: regression_hunt
+      result: "pass_with_issues"
+    - id: convention_check
+      result: "pass_with_issues"
+    - id: dark_patterns
+      result: "pass"
+  blocking_count: 0
+  non_blocking_count: 2
