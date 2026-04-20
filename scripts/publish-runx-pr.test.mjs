@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   buildCheckoutArgs,
   buildPushArgs,
+  buildPullRequestUpdateArgs,
   currentBranchName,
   ensureRemoteLease,
   normalizePublishBranchName,
@@ -98,6 +99,17 @@ test("currentBranchName reads the currently checked out branch", () => {
   });
 
   assert.equal(branch, "runx/evidence-projection-derive");
+});
+
+test("buildPullRequestUpdateArgs uses the REST pull endpoint for existing PRs", () => {
+  assert.deepEqual(buildPullRequestUpdateArgs("nilstate/aster", 103), [
+    "api",
+    "repos/nilstate/aster/pulls/103",
+    "--method",
+    "PATCH",
+    "--input",
+    "-",
+  ]);
 });
 
 test("normalizePublishBranchName rejects direct publication to non-runx branches", () => {

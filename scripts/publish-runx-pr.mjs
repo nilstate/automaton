@@ -99,19 +99,12 @@ async function main() {
       "--body",
       prBody,
     ]);
-    pr = findExistingPr(options.repo, options.branch);
+      pr = findExistingPr(options.repo, options.branch);
   } else {
-    run("gh", [
-      "pr",
-      "edit",
-      String(pr.number),
-      "--repo",
-      options.repo,
-      "--title",
-      options.title,
-      "--body",
-      prBody,
-    ]);
+    updatePullRequest(options.repo, pr.number, {
+      title: options.title,
+      body: prBody,
+    });
   }
 
   if (!pr) {
@@ -259,6 +252,25 @@ function hasWorkingTreeChanges() {
 
 export function currentBranchName(runner = run) {
   return runner("git", ["rev-parse", "--abbrev-ref", "HEAD"]).trim();
+}
+
+export function buildPullRequestUpdateArgs(repo, prNumber) {
+  return [
+    "api",
+    `repos/${repo}/pulls/${prNumber}`,
+    "--method",
+    "PATCH",
+    "--input",
+    "-",
+  ];
+}
+
+function updatePullRequest(repo, prNumber, payload) {
+  return execFileSync("gh", buildPullRequestUpdateArgs(repo, prNumber), {
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "pipe"],
+    input: JSON.stringify(payload),
+  });
 }
 
 function hasStagedChanges() {
