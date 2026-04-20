@@ -1,12 +1,109 @@
 {
-  "generated_at": "2026-04-20T00:00:00Z",
+  "generated_at": "2026-04-20T07:06:12.994Z",
   "source": {
     "type": "github_search",
     "marker": "aster:thread-teaching-record",
-    "repos": [],
+    "repos": [
+      "nilstate/aster",
+      "nilstate/runx",
+      "pnpm/pnpm",
+      "astral-sh/uv",
+      "biomejs/biome",
+      "vitejs/vite"
+    ],
     "search_limit": 20
   },
   "errors": [],
-  "records": [],
-  "teaching_rows": []
+  "records": [
+    {
+      "record_id": "nilstate-aster-issue-54-publish-authorization-2026-04-20t04-44-06z",
+      "repo": "nilstate/aster",
+      "thread": "nilstate/aster#issue/54",
+      "thread_kind": "issue",
+      "thread_number": 54,
+      "thread_title": "[collaboration] live thread-teaching gate test",
+      "thread_url": "https://github.com/nilstate/aster/issues/54",
+      "thread_state": "open",
+      "status": "active",
+      "thread_teaching_record": {
+        "record_id": "nilstate-aster-issue-54-publish-authorization-2026-04-20t04-44-06z",
+        "kind": "publish_authorization",
+        "summary": "One bounded docs PR may be published for the live thread-teaching gate test.",
+        "recorded_by": "kam",
+        "target_repo": "nilstate/aster",
+        "subject_locator": "nilstate/aster",
+        "objective_fingerprint": null,
+        "expires_after": null,
+        "applies_to": [
+          "docs-pr.publish"
+        ],
+        "invariants": [
+          "Keep the change docs-only and reviewable."
+        ],
+        "notes": [
+          "This issue exists to verify the live thread-teaching gate and context path on the codex/thread-teaching-live-gate branch."
+        ],
+        "labels": [],
+        "decisions": [
+          {
+            "gate_id": "docs-pr.publish",
+            "decision": "allow",
+            "reason": "bounded draft publication is approved"
+          }
+        ],
+        "supersedes": [],
+        "repo": "nilstate/aster",
+        "thread_kind": "issue",
+        "thread_number": 54,
+        "source_type": "issue_body",
+        "source_url": "https://github.com/nilstate/aster/issues/54",
+        "author": "auscaster",
+        "author_association": "MEMBER",
+        "recorded_at": "2026-04-20T04:44:06Z",
+        "status": "active"
+      }
+    }
+  ],
+  "teaching_rows": [
+    {
+      "kind": "runx.aster-thread-teaching-row.v1",
+      "generated_at": "2026-04-20T07:06:12.994Z",
+      "repo": "nilstate/aster",
+      "thread": "nilstate/aster#issue/54",
+      "thread_kind": "issue",
+      "thread_number": 54,
+      "thread_title": "[collaboration] live thread-teaching gate test",
+      "thread_url": "https://github.com/nilstate/aster/issues/54",
+      "thread_state": "open",
+      "record_id": "nilstate-aster-issue-54-publish-authorization-2026-04-20t04-44-06z",
+      "record_kind": "publish_authorization",
+      "status": "active",
+      "recorded_at": "2026-04-20T04:44:06Z",
+      "recorded_by": "kam",
+      "source_type": "issue_body",
+      "source_url": "https://github.com/nilstate/aster/issues/54",
+      "target_repo": "nilstate/aster",
+      "subject_locator": "nilstate/aster",
+      "objective_fingerprint": null,
+      "summary": "One bounded docs PR may be published for the live thread-teaching gate test.",
+      "applies_to": [
+        "docs-pr.publish"
+      ],
+      "labels": [],
+      "invariants": [
+        "Keep the change docs-only and reviewable."
+      ],
+      "notes": [
+        "This issue exists to verify the live thread-teaching gate and context path on the codex/thread-teaching-live-gate branch."
+      ],
+      "decisions": [
+        {
+          "gate_id": "docs-pr.publish",
+          "decision": "allow",
+          "reason": "bounded draft publication is approved"
+        }
+      ],
+      "supersedes": []
+    }
+  ]
 }
