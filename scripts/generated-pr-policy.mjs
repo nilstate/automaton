@@ -26,6 +26,9 @@ export function inferGeneratedPrLane({ headRefName, title, body }) {
   if (branch.startsWith("runx/operator-memory-issue-triage-") || normalizedTitle.includes("issue-triage operator memory")) {
     return "issue-triage";
   }
+  if (branch.startsWith("runx/evidence-projection-derive") || normalizedTitle.includes("evidence projections")) {
+    return "evidence-projection-derive";
+  }
   if (branch.startsWith("runx/skill-") || normalizedTitle.includes("skill proposal")) {
     return "skill-lab";
   }

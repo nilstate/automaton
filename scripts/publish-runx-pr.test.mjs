@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   buildCheckoutArgs,
   buildPushArgs,
+  currentBranchName,
   ensureRemoteLease,
   normalizePublishBranchName,
 } from "./publish-runx-pr.mjs";
@@ -87,6 +88,16 @@ test("buildPushArgs uses the same non-destructive push shape for new branches", 
     "origin",
     "runx/generated-docs-pr",
   ]);
+});
+
+test("currentBranchName reads the currently checked out branch", () => {
+  const branch = currentBranchName((command, args) => {
+    assert.equal(command, "git");
+    assert.deepEqual(args, ["rev-parse", "--abbrev-ref", "HEAD"]);
+    return "runx/evidence-projection-derive\n";
+  });
+
+  assert.equal(branch, "runx/evidence-projection-derive");
 });
 
 test("normalizePublishBranchName rejects direct publication to non-runx branches", () => {

@@ -155,6 +155,9 @@ the draft-first observability lanes continue to run.
 - [scripts/apply-aster-promotions.mjs](./scripts/apply-aster-promotions.mjs):
   applies promotion drafts back into repo-owned `history/`, `reflections/`, and
   target dossier recent-outcomes sections
+- [scripts/derive-evidence-projections.mjs](./scripts/derive-evidence-projections.mjs):
+  rebuilds repo-owned memory projections from uploaded workflow artifacts and
+  keeps them on one rolling draft PR
 - [scripts/runx-agent-bridge.mjs](./scripts/runx-agent-bridge.mjs): external
   caller that answers `runx` `agent-step` requests without internal shortcuts
 - [scripts/prepare-issue-triage-decision.mjs](./scripts/prepare-issue-triage-decision.mjs):

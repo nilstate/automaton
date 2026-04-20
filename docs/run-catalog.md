@@ -19,11 +19,11 @@ This is the live run catalog for `aster`.
   workers only after thread teaching authorizes build, keep PR review legible,
   and dedupe repeated issue or PR events before public output
 - output: triage comment, triage decision artifact, optional archived scafld
-  specs, changed repo files, receipts, draft PRs, issue backlink comments,
-  posted PR comments, comment evals, generated-PR evals, and active
-  thread-teaching context
-- boundary: generated `issue-triage` state-refresh PRs are blocked from
-  PR-mode `issue-triage`; they remain review surfaces only
+  specs, promotion packet drafts inside uploaded artifacts, receipts, draft PRs,
+  issue backlink comments, posted PR comments, comment evals, generated-PR
+  evals, and active thread-teaching context
+- boundary: generated derived-state PRs such as evidence-projection refreshes
+  are blocked from PR-mode `issue-triage`; they remain review surfaces only
 
 ### `collaboration-record`
 
@@ -41,7 +41,18 @@ This is the live run catalog for `aster`.
 - command: `runx skill <runx>/skills/objective-to-skill`
 - purpose: turn a proposed new capability into a concrete skill package
   proposal, materialize it under `docs/skill-proposals/`, and open a draft PR
-- output: proposal markdown, raw packet JSON, receipts, draft PR
+- output: proposal markdown, raw packet JSON, receipts, promotion packet
+  drafts inside uploaded artifacts, and draft PR
+
+### `evidence-projection-derive`
+
+- trigger: scheduled every six hours, plus manual dispatch
+- command: `node scripts/derive-evidence-projections.mjs`
+- purpose: rebuild repo-owned `history/`, `reflections/`, target dossier recent
+  outcomes, and `state/evidence-projections.json` from uploaded GitHub Actions
+  artifacts instead of mutating those surfaces inline during issue-triage
+- output: rolling draft PR, projection state file, artifact-derive report, and
+  uploaded derive artifacts
 
 ### `fix-pr`
 

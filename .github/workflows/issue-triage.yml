@@ -268,10 +268,6 @@ jobs:
             --repo-root "$GITHUB_WORKSPACE" \
             --default-repo "${{ steps.issue.outputs.target_repo }}" \
             --output "$GITHUB_WORKSPACE/.artifacts/issue-triage/issue/triage-decision.json"
-          node scripts/apply-aster-promotions.mjs \
-            --repo-root "$GITHUB_WORKSPACE" \
-            --summary "$GITHUB_WORKSPACE/.artifacts/issue-triage/issue/core-summary.json" \
-            --output "$GITHUB_WORKSPACE/.artifacts/issue-triage/issue/promotion-apply.json"
           jq -r '.comment_body' "$GITHUB_WORKSPACE/.artifacts/issue-triage/issue/triage-decision.json" \
             > "$GITHUB_WORKSPACE/.artifacts/issue-triage/issue/triage-comment.md"
           if [ "$(jq -r '.triage_decision.should_start_planner' "$GITHUB_WORKSPACE/.artifacts/issue-triage/issue/triage-decision.json")" = "true" ]; then
@@ -613,10 +609,6 @@ jobs:
             --objective "Draft the next high-signal maintainer comment for this pull request" \
             --issue_snapshot "$(cat "$GITHUB_WORKSPACE/.artifacts/issue-triage/pr/pr-snapshot.json")" \
             --maintainer_context "Comment as the aster operator only when there is one concrete missing validation, reproduction gap, scope mismatch, or next unblock that is not already obvious in the thread. If the highest-value action is no public comment, keep it internal and do not invent a reply. This is a pull request thread, not a user support issue."
-          node scripts/apply-aster-promotions.mjs \
-            --repo-root "$GITHUB_WORKSPACE" \
-            --summary "$GITHUB_WORKSPACE/.artifacts/issue-triage/pr/core-summary.json" \
-            --output "$GITHUB_WORKSPACE/.artifacts/issue-triage/pr/promotion-apply.json"
 
       - name: Materialize PR comment
         if: ${{ steps.preflight.outputs.enabled == 'true' && steps.target_scope.outputs.allowed == 'true' && steps.pr_policy.outputs.allowed == 'true' && steps.pr_replay_guard.outputs.status == 'run' }}

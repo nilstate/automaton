@@ -53,12 +53,6 @@ export async function runAsterCycle(options = {}) {
         maxIssues: Number(options.maxIssues ?? 20),
         maxPrs: Number(options.maxPrs ?? 20),
       });
-  const openOperatorMemoryBranches = options.openOperatorMemoryBranches
-    ?? (options.openOperatorMemoryInput
-      ? JSON.parse(await readFile(path.resolve(options.openOperatorMemoryInput), "utf8"))
-      : options.discoveryInput
-        ? []
-        : await loadOpenOperatorMemoryBranches(repo));
 
   const opportunities = discoverOpportunities({
     repo,
@@ -74,7 +68,6 @@ export async function runAsterCycle(options = {}) {
     memory,
     policy,
     now,
-    openOperatorMemoryBranches,
   });
   const selection = selectOpportunity({
     scored,
@@ -266,7 +259,6 @@ export function scoreOpportunities({
   memory,
   policy,
   now,
-  openOperatorMemoryBranches = [],
 }) {
   return opportunities
     .map((opportunity) => scoreOpportunity({
@@ -276,7 +268,6 @@ export function scoreOpportunities({
       memory,
       policy,
       now,
-      openOperatorMemoryBranches,
     }))
     .sort(compareSelectionCandidates);
 }
@@ -288,7 +279,6 @@ export function scoreOpportunity({
   memory,
   policy,
   now,
-  openOperatorMemoryBranches = [],
 }) {
   const dossier = opportunity.dossier ?? dossiers[slugifyRepoLike(opportunity.target_repo)] ?? null;
   const allowedLanes = dossier?.default_lanes ?? [];
@@ -335,10 +325,6 @@ export function scoreOpportunity({
   }
   if (String(opportunity.head_ref_name ?? "").startsWith("runx/operator-memory-")) {
     veto_reasons.push("subject_is_operator_memory_pr");
-  }
-  const operatorMemoryBranch = operatorMemoryBranchForOpportunity(opportunity);
-  if (operatorMemoryBranch && openOperatorMemoryBranches.includes(operatorMemoryBranch)) {
-    veto_reasons.push("open_operator_memory_pr");
   }
   if (opportunity.lane === "issue-triage") {
     const publicCommentPolicy = evaluatePublicCommentOpportunity({
@@ -773,22 +759,6 @@ async function loadTargetDossiers(targetDir) {
   return dossiers;
 }
 
-async function loadOpenOperatorMemoryBranches(repo) {
-  const listing = JSON.parse(run("gh", [
-    "pr",
-    "list",
-    "--repo",
-    repo,
-    "--state",
-    "open",
-    "--json",
-    "headRefName",
-  ]));
-  return normalizeCollection(listing)
-    .map((entry) => firstString(entry?.headRefName))
-    .filter((branch) => branch.startsWith("runx/operator-memory-"));
-}
-
 async function loadOperatorMemory(repoRoot) {
   const threadTeachingState = await readOptionalJson(path.join(repoRoot, "state", "thread-teaching.json"));
   return {
@@ -989,10 +959,6 @@ function parseArgs(argv) {
     }
     if (token === "--discovery-input") {
       options.discoveryInput = requireValue(argv, ++index, token);
-      continue;
-    }
-    if (token === "--open-operator-memory-input") {
-      options.openOperatorMemoryInput = requireValue(argv, ++index, token);
       continue;
     }
     if (token === "--dispatch-ref") {
@@ -1589,20 +1555,6 @@ function countRecentLaneExecutions(memory, lane, limit = 6) {
     .sort((left, right) => String(right.date).localeCompare(String(left.date)))
     .slice(0, limit)
     .length;
-}
-
-function operatorMemoryBranchForOpportunity(opportunity) {
-  const targetSlug = slugifyRepoLike(opportunity.target_repo ?? opportunity.subject_locator);
-  if (!targetSlug || !opportunity.lane) {
-    return null;
-  }
-  if (opportunity.pr_number) {
-    return `runx/operator-memory-${opportunity.lane}-${targetSlug}-pr-${opportunity.pr_number}`;
-  }
-  if (opportunity.issue_number) {
-    return `runx/operator-memory-${opportunity.lane}-${targetSlug}-issue-${opportunity.issue_number}`;
-  }
-  return null;
 }
 
 function unique(values) {

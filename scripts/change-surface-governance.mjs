@@ -146,6 +146,8 @@ function allowedSurfacesForLane(lane) {
   switch (lane) {
     case "issue-triage":
       return new Set(["learned_state", "public_history", "reflections", "repo_meta"]);
+    case "evidence-projection-derive":
+      return new Set(["learned_state", "public_history", "reflections", "repo_meta"]);
     case "thread-teaching-derive":
       return new Set(["learned_state", "repo_meta"]);
     case "docs-pr":

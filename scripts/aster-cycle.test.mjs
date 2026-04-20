@@ -753,7 +753,7 @@ test("buildDispatchPlan dispatches curated prerelease opportunities", () => {
   assert.equal(plan.inputs.pr_number, "101");
 });
 
-test("runAsterCycle vetoes candidates with an open operator-memory PR", async () => {
+test("runAsterCycle prefers a bounded issue over an otherwise eligible PR", async () => {
   const tempRoot = await mkdtemp(path.join(os.tmpdir(), "aster-open-pr-"));
   const repoRoot = path.join(tempRoot, "repo");
   await mkdir(path.join(repoRoot, "doctrine"), { recursive: true });
@@ -822,7 +822,6 @@ test("runAsterCycle vetoes candidates with an open operator-memory PR", async ()
     repoRoot,
     repo: "nilstate/aster",
     discoveryInput: discoveryPath,
-    openOperatorMemoryBranches: ["runx/operator-memory-issue-triage-nilstate-runx-pr-101"],
     now: "2026-04-16T12:00:00Z",
   });
   const vetoedPr = result.opportunities.find((entry) => entry.subject_locator === "nilstate/runx#pr/101");
@@ -832,7 +831,7 @@ test("runAsterCycle vetoes candidates with an open operator-memory PR", async ()
   assert.equal(result.selection.selected.lane, "issue-triage");
   assert.equal(result.selection.selected.issue_number, "202");
   assert.equal(vetoedPr?.subject_locator, "nilstate/runx#pr/101");
-  assert.match(vetoedPr?.veto_reasons.join(",") ?? "", /open_operator_memory_pr/);
+  assert.deepEqual(vetoedPr?.veto_reasons ?? [], ["comment_without_welcome_signal"]);
   assert.equal(vetoedPr?.within_v1_scope, true);
 });
 

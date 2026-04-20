@@ -7,6 +7,7 @@ import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import {
   applyAsterPromotions,
   assertManagedPromotionTarget,
+  resolvePromotionOutputs,
   upsertFrontmatterField,
   upsertRecentOutcomesSection,
 } from "./apply-aster-promotions.mjs";
@@ -98,4 +99,31 @@ test("applyAsterPromotions copies drafts and updates target dossier", async () =
   assert.match(dossier, /README command drift/);
   assert.match(await readFile(path.join(repoRoot, "reflections", "reflection.md"), "utf8"), /# Reflection/);
   assert.match(await readFile(path.join(repoRoot, "history", "entry.md"), "utf8"), /# History/);
+});
+
+test("resolvePromotionOutputs falls back to artifact-local promotion files", async () => {
+  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "aster-promotion-resolve-"));
+  const summaryPath = path.join(tempRoot, "core-summary.json");
+  const promotionsDir = path.join(tempRoot, "promotions");
+  await mkdir(promotionsDir, { recursive: true });
+
+  const reflectionPath = path.join(promotionsDir, "reflection.md");
+  const historyPath = path.join(promotionsDir, "history-entry.md");
+  const packetPath = path.join(promotionsDir, "packet.json");
+  await writeFile(reflectionPath, "# Reflection\n");
+  await writeFile(historyPath, "# History\n");
+  await writeFile(packetPath, "{}\n");
+
+  const outputs = resolvePromotionOutputs(
+    {
+      reflection_path: "/home/runner/work/aster/aster/.artifacts/issue-triage/issue/promotions/reflection.md",
+      history_path: "/home/runner/work/aster/aster/.artifacts/issue-triage/issue/promotions/history-entry.md",
+      packet_path: "/home/runner/work/aster/aster/.artifacts/issue-triage/issue/promotions/packet.json",
+    },
+    summaryPath,
+  );
+
+  assert.equal(outputs.reflection_path, reflectionPath);
+  assert.equal(outputs.history_path, historyPath);
+  assert.equal(outputs.packet_path, packetPath);
 });

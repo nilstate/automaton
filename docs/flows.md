@@ -26,8 +26,18 @@ This lane has two entry modes:
 2. PR mode builds a live PR snapshot, runs it through `github-triage`, and
    posts a maintainer comment back to the PR. Public-value and replay gates
    block low-signal or duplicate comments for the same head SHA. Generated
-   `issue-triage` state-refresh PRs are blocked before model work because they
+   derived-state refresh PRs are blocked before model work because they
    are review surfaces, not new triage subjects
+
+## `evidence-projection-derive`
+
+This lane is the replacement for per-event operator-memory publication.
+
+It downloads uploaded workflow artifacts from `issue-triage` and `skill-lab`,
+replays their promotion packets back into repo-owned `history/`,
+`reflections/`, and target dossiers, records the processed artifact ids in
+`state/evidence-projections.json`, and updates one rolling draft PR instead of
+spawning one PR per event.
 
 ## `collaboration-record`
 

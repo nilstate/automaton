@@ -94,3 +94,27 @@ test("checkIssueTriagePrPolicy blocks generated issue-triage operator-memory PRs
   assert.deepEqual(result.reasons, ["generated_issue_triage_pr"]);
   assert.equal(result.generated_lane, "issue-triage");
 });
+
+test("checkIssueTriagePrPolicy blocks generated evidence projection PRs", async () => {
+  const tempRoot = await mkdtemp(path.join(os.tmpdir(), "aster-pr-policy-projection-"));
+  const snapshotPath = path.join(tempRoot, "snapshot.json");
+  await writeFile(
+    snapshotPath,
+    `${JSON.stringify({
+      title: "[runx] refresh evidence projections",
+      body: "<!-- aster:generated-pr-policy lane=evidence-projection-derive merge=human_review draft_only=true -->\n\n## Summary\n\nDerived evidence projections.",
+      author: "github-actions[bot]",
+      author_association: "MEMBER",
+      head_ref: "runx/evidence-projection-derive",
+      labels: [],
+      comment_count: 0,
+      review_count: 0,
+    }, null, 2)}\n`,
+  );
+
+  const result = await checkIssueTriagePrPolicy({ snapshot: snapshotPath });
+
+  assert.equal(result.allowed, false);
+  assert.deepEqual(result.reasons, ["generated_evidence_projection_pr"]);
+  assert.equal(result.generated_lane, "evidence-projection-derive");
+});

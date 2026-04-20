@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -22,13 +23,13 @@ async function main(argv = process.argv.slice(2)) {
 
 export async function applyAsterPromotions(options) {
   const repoRoot = path.resolve(options.repoRoot);
-  const summary = JSON.parse(await readFile(path.resolve(options.summary), "utf8"));
-  const packet = JSON.parse(
-    await readFile(path.resolve(summary?.promotion_outputs?.packet_path), "utf8"),
-  );
+  const summaryPath = path.resolve(options.summary);
+  const summary = JSON.parse(await readFile(summaryPath, "utf8"));
+  const promotionOutputs = resolvePromotionOutputs(summary?.promotion_outputs, summaryPath);
+  const packet = JSON.parse(await readFile(promotionOutputs.packet_path, "utf8"));
 
-  const reflectionSource = path.resolve(summary?.promotion_outputs?.reflection_path);
-  const historySource = path.resolve(summary?.promotion_outputs?.history_path);
+  const reflectionSource = promotionOutputs.reflection_path;
+  const historySource = promotionOutputs.history_path;
   const reflectionTarget = path.join(repoRoot, "reflections", path.basename(reflectionSource));
   const historyTarget = path.join(
     repoRoot,
@@ -61,6 +62,37 @@ export async function applyAsterPromotions(options) {
     target_dossier_path: targetDossierPath,
     target_updated: targetUpdated,
   };
+}
+
+export function resolvePromotionOutputs(outputs, summaryPath) {
+  const resolvedSummaryPath = path.resolve(summaryPath);
+  return {
+    reflection_path: resolvePromotionPath(outputs?.reflection_path, resolvedSummaryPath),
+    history_path: resolvePromotionPath(outputs?.history_path, resolvedSummaryPath),
+    packet_path: resolvePromotionPath(outputs?.packet_path, resolvedSummaryPath),
+  };
+}
+
+function resolvePromotionPath(rawPath, summaryPath) {
+  const normalized = typeof rawPath === "string" && rawPath.trim().length > 0
+    ? rawPath.trim()
+    : null;
+  if (!normalized) {
+    throw new Error(`promotion output missing required path in ${summaryPath}`);
+  }
+
+  const summaryDir = path.dirname(summaryPath);
+  const candidates = [
+    path.resolve(normalized),
+    path.join(summaryDir, "promotions", path.basename(normalized)),
+    path.join(summaryDir, path.basename(normalized)),
+  ];
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return candidates[0];
 }
 
 async function copyIfChanged(source, target) {

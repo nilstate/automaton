@@ -77,16 +77,12 @@ export async function buildOperatorShakeoutReport({ repoRoot, publishEvidencePat
     title: "Clarify deploy docs",
     body: "Docs drift exists.",
     comments: [],
-    operator_memory_branch: "runx/operator-memory-issue-triage-nilstate-aster-issue-101",
-    has_open_operator_memory_pr: false,
   });
   const replayPr = buildReplayGuardPlan({
     mode: "pr",
     pr: "12",
     sha: "abc1234",
     comments: [],
-    operator_memory_branch: "runx/operator-memory-issue-triage-nilstate-aster-pr-12",
-    has_open_operator_memory_pr: false,
   });
   const policyPlan = buildGeneratedPrPolicyPlan({
     headRefName: "runx/docs-pr-clarify-deploy-docs",

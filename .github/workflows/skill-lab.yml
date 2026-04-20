@@ -144,10 +144,6 @@ jobs:
             skill "$GITHUB_WORKSPACE/.runx/runx/skills/objective-to-skill" \
             --objective "$ISSUE_TITLE" \
             --project_context "$ISSUE_BODY"
-          node scripts/apply-aster-promotions.mjs \
-            --repo-root "$GITHUB_WORKSPACE" \
-            --summary "$GITHUB_WORKSPACE/.artifacts/skill-lab/core-summary.json" \
-            --output "$GITHUB_WORKSPACE/.artifacts/skill-lab/promotion-apply.json"
 
       - name: Materialize proposal
         if: ${{ steps.preflight.outputs.enabled == 'true' }}

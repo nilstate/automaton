@@ -13,8 +13,6 @@ export async function issueTriageReplayGuard(argv = process.argv.slice(2), runne
   const plan = buildReplayGuardPlan({
     ...options,
     comments: loadComments(options, runner),
-    operator_memory_branch: buildOperatorMemoryBranch(options),
-    has_open_operator_memory_pr: hasOpenOperatorMemoryPr(options, runner),
   });
   process.stdout.write(`${JSON.stringify(plan, null, 2)}\n`);
   return plan;
@@ -28,17 +26,7 @@ export function buildReplayGuardPlan({
   body,
   sha,
   comments = [],
-  operator_memory_branch,
-  has_open_operator_memory_pr = false,
 }) {
-  if (has_open_operator_memory_pr) {
-    return {
-      status: "skip",
-      reason: "open_operator_memory_pr",
-      operator_memory_branch,
-    };
-  }
-
   if (mode === "issue") {
     const fingerprint = computeIssueFingerprint({ title, body });
     const existing = comments.find((comment) => {
@@ -50,13 +38,11 @@ export function buildReplayGuardPlan({
         status: "skip",
         reason: "duplicate_issue_fingerprint",
         fingerprint,
-        operator_memory_branch,
       };
     }
     return {
       status: "run",
       fingerprint,
-      operator_memory_branch,
       issue,
     };
   }
@@ -70,14 +56,12 @@ export function buildReplayGuardPlan({
       status: "skip",
       reason: "duplicate_pr_head_sha",
       sha,
-      operator_memory_branch,
     };
   }
 
   return {
     status: "run",
     sha,
-    operator_memory_branch,
     pr,
   };
 }
@@ -112,36 +96,8 @@ function loadComments(options, runner) {
   return pr.comments ?? [];
 }
 
-function hasOpenOperatorMemoryPr(options, runner) {
-  const listing = JSON.parse(
-    runner("gh", [
-      "pr",
-      "list",
-      "--repo",
-      options.asterRepo,
-      "--head",
-      buildOperatorMemoryBranch(options),
-      "--state",
-      "open",
-      "--json",
-      "number",
-    ]),
-  );
-  return Array.isArray(listing) && listing.length > 0;
-}
-
-function buildOperatorMemoryBranch(options) {
-  const targetSlug = slugifyRepoLike(options.repo);
-  if (options.mode === "issue") {
-    return `runx/operator-memory-issue-triage-${targetSlug}-issue-${options.issue}`;
-  }
-  return `runx/operator-memory-issue-triage-${targetSlug}-pr-${options.pr}`;
-}
-
 function parseArgs(argv) {
-  const options = {
-    asterRepo: process.env.GITHUB_REPOSITORY || "nilstate/aster",
-  };
+  const options = {};
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (token === "--mode") {
@@ -172,10 +128,6 @@ function parseArgs(argv) {
       options.sha = requireValue(argv, ++index, token);
       continue;
     }
-    if (token === "--aster-repo") {
-      options.asterRepo = requireValue(argv, ++index, token);
-      continue;
-    }
     throw new Error(`Unknown argument: ${token}`);
   }
 
@@ -200,13 +152,6 @@ function requireValue(argv, index, flag) {
     throw new Error(`${flag} requires a value.`);
   }
   return value;
-}
-
-function slugifyRepoLike(value) {
-  return String(value ?? "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

@@ -25,7 +25,6 @@ test("buildReplayGuardPlan skips duplicate issue fingerprints", () => {
         }),
       },
     ],
-    operator_memory_branch: "runx/operator-memory-issue-triage-nilstate-aster-issue-42",
   });
 
   assert.equal(plan.status, "skip");
@@ -46,24 +45,8 @@ test("buildReplayGuardPlan skips duplicate PR head shas", () => {
         }),
       },
     ],
-    operator_memory_branch: "runx/operator-memory-issue-triage-nilstate-aster-pr-18",
   });
 
   assert.equal(plan.status, "skip");
   assert.equal(plan.reason, "duplicate_pr_head_sha");
-});
-
-test("buildReplayGuardPlan skips when an operator-memory PR is already open", () => {
-  const plan = buildReplayGuardPlan({
-    mode: "issue",
-    issue: "42",
-    title: "docs: fix command",
-    body: "Command drift in README.",
-    comments: [],
-    operator_memory_branch: "runx/operator-memory-issue-triage-nilstate-aster-issue-42",
-    has_open_operator_memory_pr: true,
-  });
-
-  assert.equal(plan.status, "skip");
-  assert.equal(plan.reason, "open_operator_memory_pr");
 });

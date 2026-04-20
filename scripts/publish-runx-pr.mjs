@@ -36,7 +36,9 @@ async function main() {
     return;
   }
 
-  run("git", buildCheckoutArgs(options.branch, remoteLease));
+  if (currentBranchName() !== options.branch) {
+    run("git", buildCheckoutArgs(options.branch, remoteLease));
+  }
   run("git", ["add", "-A"]);
   const changeSummary = summarizeStagedChanges();
   const changeSurfacePolicy = evaluateLaneChangeSurfacePolicy({
@@ -253,6 +255,10 @@ export function buildCheckoutArgs(branch, remoteLease) {
 
 function hasWorkingTreeChanges() {
   return run("git", ["status", "--porcelain"]).trim().length > 0;
+}
+
+export function currentBranchName(runner = run) {
+  return runner("git", ["rev-parse", "--abbrev-ref", "HEAD"]).trim();
 }
 
 function hasStagedChanges() {

@@ -26,6 +26,7 @@ const required = [
   "docs/flows.md",
   "docs/skill-upstream.md",
   "docs/operations.md",
+  "state/evidence-projections.json",
   "state/priorities.md",
   "state/capabilities.md",
   "state/thread-teaching.json",
@@ -79,6 +80,8 @@ const required = [
   "scripts/build-collaboration-record-packet.test.mjs",
   "scripts/apply-aster-promotions.mjs",
   "scripts/apply-aster-promotions.test.mjs",
+  "scripts/derive-evidence-projections.mjs",
+  "scripts/derive-evidence-projections.test.mjs",
   "scripts/aster-core.mjs",
   "scripts/aster-core.test.mjs",
   "scripts/thread-teaching.mjs",
@@ -132,11 +135,13 @@ const required = [
   ".github/workflows/site-pages.yml",
   ".github/workflows/aster-cycle.yml",
   ".github/workflows/thread-teaching-derive.yml",
+  ".github/workflows/evidence-projection-derive.yml",
   ".github/workflows/issue-triage.yml",
   ".github/workflows/skill-lab.yml",
   ".github/workflows/skill-upstream.yml",
   ".github/workflows/merge-watch.yml",
   ".github/ISSUE_TEMPLATE/collaboration.yml",
+  ".ai/specs/active/evidence-projection-derive-cutover.yaml",
 ];
 
 for (const relativePath of required) {

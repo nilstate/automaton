@@ -1,0 +1,156 @@
+spec_version: "1.1"
+task_id: "evidence-projection-derive-cutover"
+created: "2026-04-20T08:30:00Z"
+updated: "2026-04-20T09:15:00Z"
+status: "completed"
+
+task:
+  title: "Cut over repo-owned memory projection to artifact-backed derivation"
+  summary: >
+    Retiring per-event issue-triage operator-memory PRs removed the spam surface,
+    but it also exposed the missing replacement: repo-owned `history/`,
+    `reflections/`, and target-dossier projections still need to be rebuilt from
+    canonical workflow evidence. This cut introduces a dedicated
+    `evidence-projection-derive` lane that derives repo-owned projections from
+    uploaded GitHub Actions artifacts, updates one rolling draft PR instead of
+    opening one PR per event, and deletes stale selector/replay assumptions that
+    still treated operator-memory PRs as a live control surface.
+  size: "medium"
+  risk_level: "high"
+  context:
+    packages:
+      - ".github/workflows"
+      - "scripts"
+      - "state"
+      - "docs"
+      - ".ai/specs"
+    invariants:
+      - "receipts_and_uploaded_artifacts_are_canonical_evidence"
+      - "repo_owned_memory_surfaces_are_derived_projections"
+      - "one_rolling_projection_pr_is_better_than_one_pr_per_triage_event"
+      - "issue_triage_replay_should_not_depend_on_dead_operator_memory_pr_branches"
+      - "no_hidden_aliases_or_compat_modes"
+  objectives:
+    - "Create a dedicated evidence-projection derive workflow and state file."
+    - "Derive `history/`, `reflections/`, and target dossier projections from uploaded artifacts."
+    - "Use one rolling `runx/evidence-projection-derive` draft PR instead of per-event memory PRs."
+    - "Remove direct promotion application from live issue-triage and skill-lab workflows."
+    - "Delete stale replay and selector logic that still assumes open operator-memory PRs matter."
+    - "Document the new evidence-projection surface as the replacement model."
+  acceptance:
+    validation_profile: "strict"
+    definition_of_done:
+      - id: "dod1"
+        description: "A dedicated evidence-projection derive workflow exists and publishes one rolling draft PR."
+        status: "completed"
+      - id: "dod2"
+        description: "Artifact-backed derivation can replay promotion summaries whose summary files contain runner-local absolute paths."
+        status: "completed"
+      - id: "dod3"
+        description: "Issue-triage replay and selector logic no longer depend on open operator-memory PR branches."
+        status: "completed"
+      - id: "dod4"
+        description: "Docs and state describe evidence projections as derived from canonical workflow artifacts."
+        status: "completed"
+    validation:
+      - id: "v1"
+        type: "test"
+        description: "Projection, replay, selector, and publication tests pass."
+        command: "node --test scripts/apply-aster-promotions.test.mjs scripts/derive-evidence-projections.test.mjs scripts/issue-triage-replay-guard.test.mjs scripts/aster-cycle.test.mjs scripts/check-issue-triage-pr-policy.test.mjs scripts/generated-pr-policy.test.mjs scripts/publish-runx-pr.test.mjs scripts/change-surface-governance.test.mjs"
+        expected: "exit code 0"
+      - id: "v2"
+        type: "boundary"
+        description: "Workflow YAML parses after the derive lane and live workflow cutover."
+        command: "python3 -c \"import yaml; [yaml.safe_load(open(p)) for p in ['.github/workflows/evidence-projection-derive.yml','.github/workflows/issue-triage.yml','.github/workflows/skill-lab.yml']]; print('ok')\""
+        expected: "ok"
+      - id: "v3"
+        type: "boundary"
+        description: "Repo file contract and diff hygiene still pass."
+        command: "node scripts/check.mjs && git diff --check"
+        expected: "aster check passed"
+
+planning_log:
+  - timestamp: "2026-04-20T08:30:00Z"
+    actor: "agent"
+    summary: >
+      Started after retiring the historical issue-triage operator-memory PR pile.
+      The repo needed a real replacement surface that preserved receipts and
+      artifacts as canonical evidence while restoring repo-owned derived memory.
+  - timestamp: "2026-04-20T09:15:00Z"
+    actor: "agent"
+    summary: >
+      Added evidence-projection derivation from uploaded artifacts, a rolling
+      draft PR surface, artifact-path replay fixes, removed live per-run
+      promotion application, and deleted the stale operator-memory replay and
+      selector assumptions.
+
+phases:
+  - id: "phase1"
+    name: "Artifact Projection Derive"
+    objective: "Create a dedicated lane that rebuilds repo-owned projections from uploaded artifacts."
+    changes:
+      - file: "scripts/derive-evidence-projections.mjs"
+        action: "create"
+      - file: "scripts/derive-evidence-projections.test.mjs"
+        action: "create"
+      - file: "state/evidence-projections.json"
+        action: "create"
+      - file: ".github/workflows/evidence-projection-derive.yml"
+        action: "create"
+    status: "completed"
+  - id: "phase2"
+    name: "Artifact Replay Hardening"
+    objective: "Make promotion replay work from downloaded artifacts whose summary files contain runner-local absolute paths."
+    dependencies: ["phase1"]
+    changes:
+      - file: "scripts/apply-aster-promotions.mjs"
+        action: "update"
+      - file: "scripts/apply-aster-promotions.test.mjs"
+        action: "update"
+    status: "completed"
+  - id: "phase3"
+    name: "Control Surface Cleanup"
+    objective: "Remove dead operator-memory replay and selector assumptions."
+    dependencies: ["phase2"]
+    changes:
+      - file: "scripts/issue-triage-replay-guard.mjs"
+        action: "update"
+      - file: "scripts/aster-cycle.mjs"
+        action: "update"
+      - file: "scripts/check-issue-triage-pr-policy.mjs"
+        action: "update"
+      - file: "scripts/generated-pr-policy.mjs"
+        action: "update"
+      - file: "scripts/publish-runx-pr.mjs"
+        action: "update"
+    status: "completed"
+  - id: "phase4"
+    name: "Live Workflow Cutover"
+    objective: "Stop live lanes from mutating repo-owned projections directly and route them through the derive lane."
+    dependencies: ["phase3"]
+    changes:
+      - file: ".github/workflows/issue-triage.yml"
+        action: "update"
+      - file: ".github/workflows/skill-lab.yml"
+        action: "update"
+    status: "completed"
+  - id: "phase5"
+    name: "Docs And Checks"
+    objective: "Describe the evidence-projection model and register the new files in repo checks."
+    dependencies: ["phase4"]
+    changes:
+      - file: "docs/operations.md"
+        action: "update"
+      - file: "docs/run-catalog.md"
+        action: "update"
+      - file: "docs/flows.md"
+        action: "update"
+      - file: "docs/operating-model.md"
+        action: "update"
+      - file: "docs/architecture.md"
+        action: "update"
+      - file: "docs/llm-training-spec.md"
+        action: "update"
+      - file: "scripts/check.mjs"
+        action: "update"
+    status: "completed"

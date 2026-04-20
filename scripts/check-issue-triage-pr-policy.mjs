@@ -18,10 +18,10 @@ export async function checkIssueTriagePrPolicy(options) {
     title: snapshot.title,
     body: snapshot.body,
   });
-  if (generatedLane === "issue-triage") {
+  if (generatedLane === "issue-triage" || generatedLane === "evidence-projection-derive") {
     return {
       allowed: false,
-      reasons: ["generated_issue_triage_pr"],
+      reasons: [generatedLane === "issue-triage" ? "generated_issue_triage_pr" : "generated_evidence_projection_pr"],
       welcome_signal: false,
       target_subject_locator: dossier?.subject_locator ?? null,
       generated_lane: generatedLane,

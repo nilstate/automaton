@@ -97,10 +97,10 @@ Thread teaching is the canonical human-teaching layer:
   portable `SKILL.md` unless a maintainer explicitly authorizes more
 - generated PR policy enforcement keeps `runx/*` PRs draft-only and explicitly
   human-reviewed
-- per-event `issue-triage` operator-memory PR publication is disabled pending a
-  redesign; receipts, uploaded artifacts, and canonical collaboration issues are
-  the durable evidence, while any future derived-state refresh surface must
-  batch or compact updates instead of opening one PR per triage event
+- `evidence-projection-derive` is now the only repo-memory projection surface:
+  it rebuilds `history/`, `reflections/`, target dossier outcomes, and
+  `state/evidence-projections.json` from uploaded workflow artifacts and updates
+  one rolling draft PR instead of opening one PR per triage event
 - merge-watch is read-only against upstream repos. It records PR state, checks,
   merge commit, and upstream blob metadata, then emits an internal
   registry-binding request after merge

@@ -124,8 +124,13 @@ That progression should be gradual:
   an `issue-to-pr` worker when the gate approves bounded build work
 - `issue-triage` comments on open PRs with a runx-authored maintainer response
   only after replay and public-value gates pass
-- generated `issue-triage` state-refresh PRs are review surfaces and are not
-  fed back into PR-mode `issue-triage`
+- `issue-triage` and `skill-lab` emit canonical promotion packets inside
+  uploaded workflow artifacts rather than mutating repo-owned memory directly
+- `evidence-projection-derive` rebuilds repo-owned `history/`, `reflections/`,
+  target dossier outcomes, and `state/evidence-projections.json` from those
+  artifacts and keeps that work on one rolling draft PR
+- generated derived-state refresh PRs are review surfaces and are not fed back
+  into PR-mode `issue-triage`
 - `fix-pr` turns one bounded bugfix request into a verified draft PR through
   the governed PR runner
 - `docs-pr` turns one bounded explanation or docs request into a docs-only
@@ -167,7 +172,10 @@ to help the next run, but it must stay rebuildable from evidence.
 The concrete mechanism for that is thread teaching: issues and PR threads are
 the canonical human-authored provider-thread evidence layer, while
 `state/thread-teaching.json` is a rebuildable derived cache and policy/context
-projection for runtime context and training.
+projection for runtime context and training. Repo-owned public memory now
+follows the same pattern: uploaded workflow artifacts stay canonical, while
+`state/evidence-projections.json`, `history/`, `reflections/`, and target
+outcome summaries are the reviewable projections derived from that evidence.
 
 ## Remaining Gap
 

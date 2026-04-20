@@ -1,0 +1,90 @@
+name: evidence-projection-derive
+
+on:
+  schedule:
+    - cron: "41 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: evidence-projection-derive
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  derive-evidence-projections:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.ASTER_GH_TOKEN != '' && secrets.ASTER_GH_TOKEN || github.token }}
+    steps:
+      - name: Check out aster
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Configure git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Prepare rolling projection branch
+        run: |
+          if git ls-remote --exit-code --heads origin runx/evidence-projection-derive >/dev/null 2>&1; then
+            git fetch --no-tags origin main runx/evidence-projection-derive:refs/remotes/origin/runx/evidence-projection-derive
+            git checkout -B runx/evidence-projection-derive refs/remotes/origin/runx/evidence-projection-derive
+            git rebase origin/main
+          else
+            git fetch --no-tags origin main
+            git checkout -B runx/evidence-projection-derive origin/main
+          fi
+
+      - name: Derive evidence projections
+        run: |
+          mkdir -p .artifacts/evidence-projection-derive
+          node scripts/derive-evidence-projections.mjs \
+            --repo-root "$GITHUB_WORKSPACE" \
+            --repo "${{ github.repository }}" \
+            --output "$GITHUB_WORKSPACE/state/evidence-projections.json" \
+            --report-output "$GITHUB_WORKSPACE/.artifacts/evidence-projection-derive/report.json" \
+            --download-root "$GITHUB_WORKSPACE/.artifacts/evidence-projection-derive/downloads"
+          cp "$GITHUB_WORKSPACE/state/evidence-projections.json" "$GITHUB_WORKSPACE/.artifacts/evidence-projection-derive/state-evidence-projections.json"
+          jq -r '"Scanned " + (.scanned_artifacts | tostring) + " artifacts; processed " + (.state.stats.newly_processed_artifacts | tostring) + " new artifact bundles and applied " + (.state.stats.applied_summaries | tostring) + " promotion summaries."' "$GITHUB_WORKSPACE/.artifacts/evidence-projection-derive/report.json" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish rolling draft PR when projections change
+        run: |
+          cat > "$GITHUB_WORKSPACE/.artifacts/evidence-projection-derive/pr-body.md" <<'EOF'
+          ## Summary
+
+          This rolling draft PR refreshes repo-owned evidence projections from uploaded GitHub Actions artifacts.
+
+          - canonical evidence remains the underlying receipts, run packets, and uploaded workflow artifacts
+          - `history/`, `reflections/`, and target dossiers are rebuilt as compact derived projections
+          - this surface intentionally updates one rolling review thread instead of opening one PR per triage event
+          EOF
+          node scripts/publish-runx-pr.mjs \
+            --repo "${{ github.repository }}" \
+            --branch "runx/evidence-projection-derive" \
+            --title "[runx] refresh evidence projections" \
+            --commit-message "state(evidence): refresh evidence projections" \
+            --body-file "$GITHUB_WORKSPACE/.artifacts/evidence-projection-derive/pr-body.md" \
+            --lane evidence-projection-derive \
+            > "$GITHUB_WORKSPACE/.artifacts/evidence-projection-derive/publish.json"
+          cat "$GITHUB_WORKSPACE/.artifacts/evidence-projection-derive/publish.json" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: evidence-projection-derive-${{ github.run_id }}
+          path: .artifacts/evidence-projection-derive

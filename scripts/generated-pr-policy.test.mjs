@@ -35,6 +35,14 @@ test("inferGeneratedPrLane derives the lane from branch naming", () => {
     }),
     "issue-triage",
   );
+  assert.equal(
+    inferGeneratedPrLane({
+      headRefName: "runx/evidence-projection-derive",
+      title: "[runx] refresh evidence projections",
+      body: "",
+    }),
+    "evidence-projection-derive",
+  );
 });
 
 test("buildGeneratedPrPolicyPlan enforces body patching and draft mode", () => {

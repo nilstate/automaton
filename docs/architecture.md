@@ -547,6 +547,7 @@ The implemented context path now lives in:
 - `scripts/aster-core.mjs`
 - `scripts/promote-aster-state.mjs`
 - `scripts/apply-aster-promotions.mjs`
+- `scripts/derive-evidence-projections.mjs`
 
 Doctrine is loaded in a stable priority order. Relevant reflections now load as
 full content when the subject matches; unrelated reflections stay excerpt-only.
@@ -674,8 +675,10 @@ For `aster` itself:
 That means:
 
 - `issue-triage` should treat receipts, uploaded artifacts, and canonical
-  collaboration issues as the durable record; any future learned-state refresh
-  surface must be explicit, compact, and non-recursive
+  collaboration issues as the durable record
+- `evidence-projection-derive` may refresh learned-state, public-history, and
+  reflection surfaces, but only as a compact derived projection over canonical
+  artifacts and only through one rolling draft PR
 - `docs-pr` may touch docs/public-face surfaces, but not doctrine or learned-state
 - `fix-pr` may touch runtime surfaces, but not doctrine or learned-state
 

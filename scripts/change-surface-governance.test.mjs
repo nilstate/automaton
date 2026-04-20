@@ -48,7 +48,7 @@ test("evaluateLaneChangeSurfacePolicy blocks doctrine and learned-state writes f
   assert.match(policy.reasons.join(","), /surface_not_allowed:learned_state/);
 });
 
-test("evaluateLaneChangeSurfacePolicy allows issue-triage operator-memory surfaces", () => {
+test("evaluateLaneChangeSurfacePolicy allows issue-triage promotion surfaces", () => {
   const policy = evaluateLaneChangeSurfacePolicy({
     lane: "issue-triage",
     repo: "nilstate/aster",
@@ -57,6 +57,24 @@ test("evaluateLaneChangeSurfacePolicy allows issue-triage operator-memory surfac
       "state/targets/nilstate-aster.md",
       "history/2026-04-17-entry.md",
       "reflections/2026-04-17-reflection.md",
+    ],
+  });
+
+  assert.equal(policy.status, "allowed");
+  assert.deepEqual(policy.blocked_surfaces, []);
+});
+
+test("evaluateLaneChangeSurfacePolicy allows evidence-projection-derive surfaces", () => {
+  const policy = evaluateLaneChangeSurfacePolicy({
+    lane: "evidence-projection-derive",
+    repo: "nilstate/aster",
+    ownerRepo: "nilstate/aster",
+    files: [
+      "state/evidence-projections.json",
+      "state/targets/nilstate-aster.md",
+      "history/2026-04-17-entry.md",
+      "reflections/2026-04-17-reflection.md",
+      "README.md",
     ],
   });
 

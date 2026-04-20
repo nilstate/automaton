@@ -94,7 +94,7 @@ Hard vetoes still apply before selection:
 
 - target outside prerelease scope
 - lane not allowed by dossier
-- replay/open-operator-memory conflict
+- generated derived-state PR conflict
 - trust-recovery cooldown
 - public-comment policy veto
 - score floors:
