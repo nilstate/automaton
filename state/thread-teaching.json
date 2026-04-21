@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-20T07:06:12.994Z",
+  "generated_at": "2026-04-21T04:22:33.353Z",
   "source": {
     "type": "github_search",
     "marker": "aster:thread-teaching-record",
@@ -15,6 +15,54 @@
   },
   "errors": [],
   "records": [
+    {
+      "record_id": "nilstate-aster-issue-104-publish-authorization-2026-04-20t11-00-05z",
+      "repo": "nilstate/aster",
+      "thread": "nilstate/aster#issue/104",
+      "thread_kind": "issue",
+      "thread_number": 104,
+      "thread_title": "[collaboration] authorize skill-upstream publication for sourcey/sourcey",
+      "thread_url": "https://github.com/nilstate/aster/issues/104",
+      "thread_state": "closed",
+      "status": "active",
+      "thread_teaching_record": {
+        "record_id": "nilstate-aster-issue-104-publish-authorization-2026-04-20t11-00-05z",
+        "kind": "publish_authorization",
+        "summary": "Publish a draft upstream SKILL.md PR describing sourcey operator workflows.",
+        "recorded_by": "auscaster",
+        "target_repo": "sourcey/sourcey",
+        "subject_locator": "sourcey/sourcey",
+        "objective_fingerprint": null,
+        "expires_after": null,
+        "applies_to": [
+          "skill-upstream.publish"
+        ],
+        "invariants": [
+          "Keep the contribution bounded, additive only, and non-marketing."
+        ],
+        "notes": [
+          "Happy-path dogfood target 1. SKILL.md should cover install, build, test, and publish flow grounded in package.json scripts and the release workflow. Part of dogfood-skill-chain-approval-gates spec."
+        ],
+        "labels": [],
+        "decisions": [
+          {
+            "gate_id": "skill-upstream.publish",
+            "decision": "allow",
+            "reason": "bounded draft contribution is approved for sourcey/sourcey"
+          }
+        ],
+        "supersedes": [],
+        "repo": "nilstate/aster",
+        "thread_kind": "issue",
+        "thread_number": 104,
+        "source_type": "issue_body",
+        "source_url": "https://github.com/nilstate/aster/issues/104",
+        "author": "auscaster",
+        "author_association": "MEMBER",
+        "recorded_at": "2026-04-20T11:00:05Z",
+        "status": "active"
+      }
+    },
     {
       "record_id": "nilstate-aster-issue-54-publish-authorization-2026-04-20t04-44-06z",
       "repo": "nilstate/aster",
@@ -67,7 +115,47 @@
   "teaching_rows": [
     {
       "kind": "runx.aster-thread-teaching-row.v1",
-      "generated_at": "2026-04-20T07:06:12.994Z",
+      "generated_at": "2026-04-21T04:22:33.353Z",
+      "repo": "nilstate/aster",
+      "thread": "nilstate/aster#issue/104",
+      "thread_kind": "issue",
+      "thread_number": 104,
+      "thread_title": "[collaboration] authorize skill-upstream publication for sourcey/sourcey",
+      "thread_url": "https://github.com/nilstate/aster/issues/104",
+      "thread_state": "closed",
+      "record_id": "nilstate-aster-issue-104-publish-authorization-2026-04-20t11-00-05z",
+      "record_kind": "publish_authorization",
+      "status": "active",
+      "recorded_at": "2026-04-20T11:00:05Z",
+      "recorded_by": "auscaster",
+      "source_type": "issue_body",
+      "source_url": "https://github.com/nilstate/aster/issues/104",
+      "target_repo": "sourcey/sourcey",
+      "subject_locator": "sourcey/sourcey",
+      "objective_fingerprint": null,
+      "summary": "Publish a draft upstream SKILL.md PR describing sourcey operator workflows.",
+      "applies_to": [
+        "skill-upstream.publish"
+      ],
+      "labels": [],
+      "invariants": [
+        "Keep the contribution bounded, additive only, and non-marketing."
+      ],
+      "notes": [
+        "Happy-path dogfood target 1. SKILL.md should cover install, build, test, and publish flow grounded in package.json scripts and the release workflow. Part of dogfood-skill-chain-approval-gates spec."
+      ],
+      "decisions": [
+        {
+          "gate_id": "skill-upstream.publish",
+          "decision": "allow",
+          "reason": "bounded draft contribution is approved for sourcey/sourcey"
+        }
+      ],
+      "supersedes": []
+    },
+    {
+      "kind": "runx.aster-thread-teaching-row.v1",
+      "generated_at": "2026-04-21T04:22:33.353Z",
       "repo": "nilstate/aster",
       "thread": "nilstate/aster#issue/54",
       "thread_kind": "issue",
