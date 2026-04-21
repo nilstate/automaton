@@ -9,6 +9,8 @@ import {
 
 test("classifyRepoPath separates constitutional, learned, and public surfaces", () => {
   assert.equal(classifyRepoPath("doctrine/VOICE.md"), "doctrine");
+  assert.equal(classifyRepoPath(".ai/specs/archive/issue-2.yaml"), "repo_meta");
+  assert.equal(classifyRepoPath(".ai/reviews/issue-2.md"), "repo_meta");
   assert.equal(classifyRepoPath("state/targets/nilstate-aster.md"), "learned_state");
   assert.equal(classifyRepoPath("history/2026-04-17-entry.md"), "public_history");
   assert.equal(classifyRepoPath("reflections/2026-04-17-note.md"), "reflections");
@@ -48,12 +50,18 @@ test("evaluateLaneChangeSurfacePolicy blocks doctrine and learned-state writes f
   assert.match(policy.reasons.join(","), /surface_not_allowed:learned_state/);
 });
 
-test("evaluateLaneChangeSurfacePolicy allows issue-triage promotion surfaces", () => {
+test("evaluateLaneChangeSurfacePolicy allows bounded non-doctrine issue-triage publication surfaces", () => {
   const policy = evaluateLaneChangeSurfacePolicy({
     lane: "issue-triage",
     repo: "nilstate/aster",
     ownerRepo: "nilstate/aster",
     files: [
+      ".ai/specs/archive/issue-2.yaml",
+      ".ai/reviews/issue-2.md",
+      "docs/flows.md",
+      "site/src/pages/index.astro",
+      "scripts/run-issue-triage-workers.mjs",
+      "src/lib/custom.txt",
       "state/targets/nilstate-aster.md",
       "history/2026-04-17-entry.md",
       "reflections/2026-04-17-reflection.md",

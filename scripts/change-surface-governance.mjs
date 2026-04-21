@@ -17,6 +17,16 @@ export function classifyRepoPath(filePath) {
   if (normalized === "doctrine" || normalized.startsWith("doctrine/")) {
     return "doctrine";
   }
+  if (
+    normalized === ".ai"
+    || normalized === ".ai/config.yaml"
+    || normalized === ".ai/specs"
+    || normalized.startsWith(".ai/specs/")
+    || normalized === ".ai/reviews"
+    || normalized.startsWith(".ai/reviews/")
+  ) {
+    return "repo_meta";
+  }
   if (normalized === "state" || normalized.startsWith("state/")) {
     return "learned_state";
   }
@@ -145,7 +155,16 @@ export function renderChangeSurfacePolicyLines(policy) {
 function allowedSurfacesForLane(lane) {
   switch (lane) {
     case "issue-triage":
-      return new Set(["learned_state", "public_history", "reflections", "repo_meta"]);
+      return new Set([
+        "learned_state",
+        "public_history",
+        "reflections",
+        "public_face",
+        "working_docs",
+        "automation_runtime",
+        "repo_meta",
+        "other",
+      ]);
     case "evidence-projection-derive":
       return new Set(["learned_state", "public_history", "reflections", "repo_meta"]);
     case "thread-teaching-derive":
