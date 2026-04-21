@@ -12,31 +12,46 @@ function resolveRunxPackagesPath() {
   const configuredPath = process.env.RUNX_PACKAGES_PATH;
   if (configuredPath) {
     const absoluteConfiguredPath = path.resolve(configuredPath);
-    if (!fs.existsSync(absoluteConfiguredPath)) {
-      throw new Error(`RUNX_PACKAGES_PATH does not exist: ${absoluteConfiguredPath}`);
+    if (!isCompleteRunxPackagesPath(absoluteConfiguredPath)) {
+      throw new Error(`RUNX_PACKAGES_PATH is missing required runx token/ui assets: ${absoluteConfiguredPath}`);
     }
     return absoluteConfiguredPath;
   }
 
   const searchRoots = enumerateAncestorDirs(fileURLToPath(new URL(".", import.meta.url)));
   const relativeCandidates = [
+    path.join(".runx", "runx", "cloud", "packages"),
+    path.join("runx", "cloud", "packages"),
     path.join(".runx", "runx", "packages"),
     path.join("runx", "packages"),
-    path.join("runx", "cloud", "packages"),
   ];
 
   for (const root of searchRoots) {
     for (const relativePath of relativeCandidates) {
       const candidate = path.join(root, relativePath);
-      if (fs.existsSync(candidate)) {
+      if (isCompleteRunxPackagesPath(candidate)) {
         return candidate;
       }
     }
   }
 
   throw new Error(
-    `Could not resolve runx packages from ${searchRoots[0]}. Checked ${relativeCandidates.join(", ")} while walking to filesystem root.`,
+    `Could not resolve complete runx token/ui packages from ${searchRoots[0]}. Checked ${relativeCandidates.join(", ")} while walking to filesystem root.`,
   );
+}
+
+function isCompleteRunxPackagesPath(candidate) {
+  if (!fs.existsSync(candidate)) {
+    return false;
+  }
+  const requiredPaths = [
+    path.join(candidate, "tokens", "dist", "layers.css"),
+    path.join(candidate, "tokens", "dist", "tokens.css"),
+    path.join(candidate, "ui", "src", "Panel", "Panel.css"),
+    path.join(candidate, "ui", "src", "LiveFeed", "LiveFeedContent.css"),
+    path.join(candidate, "ui", "src", "LiveFeed", "LiveFeedHeader.css"),
+  ];
+  return requiredPaths.every((requiredPath) => fs.existsSync(requiredPath));
 }
 
 function enumerateAncestorDirs(startDir) {
