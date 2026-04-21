@@ -1,10 +1,16 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
-import { parseGeneratedPrPolicy } from "./generated-pr-policy.mjs";
+import { ensureGeneratedPrPolicyBlock, parseGeneratedPrPolicy } from "./generated-pr-policy.mjs";
 
 export function evaluateGeneratedPr({ publish, body, validation }) {
-  const policy = parseGeneratedPrPolicy(body);
+  const effectiveBody = publish?.policy?.lane
+    ? ensureGeneratedPrPolicyBlock(body, {
+        lane: publish.policy.lane,
+        changeSurfacePolicy: publish?.change_surface_policy ?? null,
+      })
+    : body;
+  const policy = parseGeneratedPrPolicy(effectiveBody);
   const validationCommands = Array.isArray(validation?.commands) ? validation.commands : [];
   const validationChecksTotal = validationCommands.length || Number(validation?.checks_total ?? 0);
   const validationChecksPassed = validationCommands.filter((entry) => {
@@ -24,7 +30,7 @@ export function evaluateGeneratedPr({ publish, body, validation }) {
       validationCommands.length > 0
       || typeof validation?.verification_profile === "string"
       || validationChecksTotal > 0
-      || /receipts uploaded/i.test(body)
+      || /receipts uploaded/i.test(effectiveBody)
     ),
     bounded_change: fileCount > 0 || publish?.status === "published",
   };

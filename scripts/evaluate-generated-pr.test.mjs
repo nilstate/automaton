@@ -50,3 +50,31 @@ test("evaluateGeneratedPr flags missing policy blocks", () => {
   assert.equal(evaluation.status, "needs_review");
   assert.equal(evaluation.checks.policy_present, false);
 });
+
+test("evaluateGeneratedPr normalizes final published policy from metadata", () => {
+  const evaluation = evaluateGeneratedPr({
+    publish: {
+      status: "published",
+      policy: { lane: "skill-lab" },
+      change_summary: {
+        file_count: 2,
+        additions: 8,
+        deletions: 0,
+      },
+      change_surface_policy: {
+        status: "allowed",
+        internal_repo: true,
+        surfaces: ["working_docs"],
+        reasons: [],
+      },
+    },
+    body: "## Summary\n\nDraft proposal.\n\n## Validation\n\n- receipts uploaded with this workflow run",
+    validation: {
+      commands: ["npm run docs:ci"],
+    },
+  });
+
+  assert.equal(evaluation.status, "pass");
+  assert.equal(evaluation.checks.policy_present, true);
+  assert.equal(evaluation.checks.draft_only_policy, true);
+});

@@ -11,7 +11,7 @@ test("buildSkillProposalMarkdown preserves issue rationale and evidence", () => 
     payload: {
       skill_spec: {
         name: "collaboration-issue-recap",
-        description: "Summarize approval issue threads into a reusable packet.",
+        summary: "Summarize approval issue threads into a reusable packet.",
       },
       execution_plan: {
         runner: "chain",
@@ -21,7 +21,12 @@ test("buildSkillProposalMarkdown preserves issue rationale and evidence", () => 
           name: "success",
         },
       ],
-      acceptance_checks: ["fixture passes"],
+      acceptance_checks: [
+        {
+          id: "ac-fixture-passes",
+          assertion: "fixture passes",
+        },
+      ],
     },
     issuePacket: {
       sections: {
@@ -39,4 +44,7 @@ test("buildSkillProposalMarkdown preserves issue rationale and evidence", () => 
   assert.match(markdown, /## Evidence/);
   assert.match(markdown, /state\/thread-teaching\.json/);
   assert.match(markdown, /## Acceptance Checks/);
+  assert.match(markdown, /`ac-fixture-passes`: fixture passes/);
+  assert.doesNotMatch(markdown, /\[object Object\]/);
+  assert.match(markdown, /description: "Summarize approval issue threads into a reusable packet\."/);
 });

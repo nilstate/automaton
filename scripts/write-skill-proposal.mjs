@@ -41,11 +41,11 @@ export async function materializeSkillProposal(options) {
 
 export function buildSkillProposalMarkdown({ payload, title, issueUrl, issuePacket, jsonPath }) {
   const proposalTitle = payload.skill_spec?.name ?? title;
-  const proposalDescription = payload.skill_spec?.description ?? "Generated skill proposal.";
-  const acceptanceChecks =
-    Array.isArray(payload.acceptance_checks) && payload.acceptance_checks.length > 0
-      ? payload.acceptance_checks.map((item) => `- ${item}`)
-      : ["- none supplied"];
+  const proposalDescription =
+    payload.skill_spec?.description
+    ?? payload.skill_spec?.summary
+    ?? "Generated skill proposal.";
+  const acceptanceChecks = formatAcceptanceChecks(payload.acceptance_checks);
 
   const sourceSections = issuePacket?.sections ?? {};
   const lines = [
@@ -81,7 +81,7 @@ export function buildSkillProposalMarkdown({ payload, title, issueUrl, issuePack
     "## Skill Contract",
     "",
     `- name: \`${payload.skill_spec?.name ?? "unknown"}\``,
-    `- description: ${payload.skill_spec?.description ?? "n/a"}`,
+    `- description: ${payload.skill_spec?.description ?? payload.skill_spec?.summary ?? "n/a"}`,
     "",
     "## Execution Plan",
     "",
@@ -157,6 +157,38 @@ function slugify(value) {
 
 function yamlString(value) {
   return JSON.stringify(String(value));
+}
+
+function formatAcceptanceChecks(value) {
+  if (!Array.isArray(value) || value.length === 0) {
+    return ["- none supplied"];
+  }
+  return value.map((item) => {
+    if (typeof item === "string") {
+      return `- ${item}`;
+    }
+    if (item && typeof item === "object") {
+      const id = typeof item.id === "string" ? `\`${item.id}\`` : null;
+      const summary = firstNonEmptyString(item.assertion, item.summary, item.question);
+      if (id && summary) {
+        return `- ${id}: ${summary}`;
+      }
+      if (summary) {
+        return `- ${summary}`;
+      }
+      return `- ${JSON.stringify(item)}`;
+    }
+    return `- ${String(item)}`;
+  });
+}
+
+function firstNonEmptyString(...values) {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value.trim();
+    }
+  }
+  return null;
 }
 
 if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href) {
