@@ -1,0 +1,607 @@
+{
+  "skill_spec": {
+    "proposed_path": "docs/skill-proposals/collaboration-issue-distillation/SKILL.md",
+    "name": "collaboration-issue-distillation",
+    "status": "proposed",
+    "kind": "composite-skill",
+    "summary": "Distill a bounded collaboration subject into separate canonical evidence, distilled findings, and publish/build readiness artifacts before any publish or build gate proceeds.",
+    "why_it_matters": "Issue review should train the operator through explicit, rebuildable artifacts instead of hidden prompt sprawl.",
+    "required_inputs": [
+      {
+        "name": "subject_locator",
+        "type": "string",
+        "description": "Stable locator for the bounded collaboration subject. For the GitHub adapter this is the issue URL; the core contract is not GitHub-specific."
+      },
+      {
+        "name": "subject_memory",
+        "type": "object",
+        "description": "Provider-backed subject memory carrying canonical evidence refs and any adapter snapshot needed to replay the bounded subject.",
+        "required_fields": [
+          "provider",
+          "canonical_evidence_refs"
+        ],
+        "optional_fields": [
+          "adapter_snapshot",
+          "derived_context_refs",
+          "snapshot_generated_at",
+          "amendments"
+        ]
+      },
+      {
+        "name": "publication_target",
+        "type": "object",
+        "description": "Requested publish/build surface and approval semantics for the distilled output.",
+        "required_fields": [
+          "target",
+          "mode"
+        ],
+        "optional_fields": [
+          "approval_mode",
+          "required_evidence_after",
+          "draft_only"
+        ]
+      }
+    ],
+    "adapter_model": {
+      "core_contract": [
+        "subject_locator",
+        "subject_memory",
+        "publication_target"
+      ],
+      "adapter_surfaces": [
+        {
+          "name": "github_issue_thread",
+          "role": "Uses Issue #110 as the living ledger for the GitHub adapter.",
+          "canonical_evidence": [
+            "issue body",
+            "issue comments",
+            "GitHub Actions receipts"
+          ]
+        },
+        {
+          "name": "chat_or_cli_agent_context",
+          "role": "Supports the same contract outside GitHub while preserving the same approval semantics.",
+          "canonical_evidence": [
+            "bounded transcript or session records carried in subject_memory"
+          ]
+        }
+      ]
+    },
+    "outputs": [
+      {
+        "name": "canonical_evidence",
+        "type": "json",
+        "description": "Canonical evidence manifest listing the bounded evidence refs used for this distillation."
+      },
+      {
+        "name": "distilled_findings",
+        "type": "markdown",
+        "description": "Maintainer recap and distilled rationale derived from canonical evidence."
+      },
+      {
+        "name": "publish_build_readiness",
+        "type": "json",
+        "description": "Readiness and authorization status for any publish/build step, kept separate from evidence and findings."
+      }
+    ],
+    "governance": {
+      "core_behavior": "Artifact-producing and non-mutating",
+      "canonical_evidence_rule": "Issue comments and GitHub Actions receipts are canonical evidence for the GitHub adapter; derived memory must remain rebuildable and subordinate.",
+      "approval_boundary": "Any public-facing draft PR refresh is a separate workflow-gated phase and not unconditional core behavior.",
+      "publication_rule": "Any publish surface stays draft-only."
+    },
+    "validation_rules": [
+      "Missing rationale must block readiness.",
+      "Conflicting comments must block readiness.",
+      "Stale evidence must block readiness.",
+      "Maintainer amendments must flow through explicit subject_memory refs rather than hidden prompt-only state.",
+      "GitHub issue must remain an adapter surface, not the core noun."
+    ],
+    "references": [
+      "https://github.com/nilstate/aster/issues/110",
+      "https://github.com/nilstate/aster/issues/110#issuecomment-4288494563",
+      "https://github.com/nilstate/aster/issues/110#issuecomment-4288534647",
+      "state/thread-teaching.json",
+      "docs/philosophy.md",
+      "docs/operations.md"
+    ],
+    "assumptions": [
+      "The non-GitHub fixture may use a synthetic bounded subject because the acceptable source for that fixture remains an open question in the supplied decomposition.",
+      "No exact skill registry path or existing template convention under docs/skill-proposals/ was supplied."
+    ]
+  },
+  "execution_plan": {
+    "proposed_path": "docs/skill-proposals/collaboration-issue-distillation/execution-profile.yaml",
+    "kind": "chain",
+    "chain_name": "collaboration-issue-distillation",
+    "objective": "Produce separate evidence, findings, and readiness artifacts from a bounded collaboration subject before any publish/build gate proceeds.",
+    "default_completion_point": "emit-artifact-packet",
+    "required_inputs": [
+      "subject_locator",
+      "subject_memory",
+      "publication_target"
+    ],
+    "policy": {
+      "core_chain_mutation": false,
+      "draft_only_publication": true,
+      "stop_condition": "Return needs_resolution when rationale is missing, guidance conflicts, or evidence is stale.",
+      "follow_on_publication": {
+        "included_in_core_chain": false,
+        "allowed_only_with": "workflow_gate approval",
+        "description": "Refreshing the single rolling skill-lab draft PR from the same work ledger is a separate approval-gated follow-on."
+      }
+    },
+    "steps": [
+      {
+        "id": "normalize-subject-contract",
+        "skill": "objective-decompose",
+        "mutating": false,
+        "description": "Normalize the bounded subject around subject_locator, subject_memory, and publication_target, while preserving adapter-specific details inside subject_memory.",
+        "outputs": [
+          "normalized_subject"
+        ]
+      },
+      {
+        "id": "assemble-canonical-evidence",
+        "skill": "skill-lab",
+        "mutating": false,
+        "description": "Extract the canonical evidence refs and emit a separate canonical evidence manifest.",
+        "context_from": [
+          "normalize-subject-contract"
+        ],
+        "outputs": [
+          "canonical_evidence"
+        ]
+      },
+      {
+        "id": "distill-collaboration-findings",
+        "skill": "skill-lab",
+        "mutating": false,
+        "description": "Produce a maintainer recap and distilled findings without collapsing them into the evidence manifest.",
+        "context_from": [
+          "normalize-subject-contract",
+          "assemble-canonical-evidence"
+        ],
+        "outputs": [
+          "distilled_findings"
+        ]
+      },
+      {
+        "id": "assess-publish-build-readiness",
+        "skill": "skill-lab",
+        "mutating": false,
+        "description": "Evaluate rationale completeness, comment consistency, evidence freshness, and approval semantics for the requested publication_target.",
+        "context_from": [
+          "assemble-canonical-evidence",
+          "distill-collaboration-findings"
+        ],
+        "outputs": [
+          "publish_build_readiness"
+        ],
+        "gate_checks": [
+          "missing_rationale",
+          "conflicting_comments",
+          "stale_evidence",
+          "draft_only_publication_target"
+        ]
+      },
+      {
+        "id": "emit-artifact-packet",
+        "skill": "skill-lab",
+        "mutating": false,
+        "description": "Emit the three outputs as separate artifacts even when readiness is blocked, so the result remains inspectable and rebuildable.",
+        "context_from": [
+          "assemble-canonical-evidence",
+          "distill-collaboration-findings",
+          "assess-publish-build-readiness"
+        ],
+        "outputs": [
+          "canonical_evidence",
+          "distilled_findings",
+          "publish_build_readiness"
+        ]
+      }
+    ],
+    "open_questions": [
+      {
+        "id": "oq-non-github-fixture-source",
+        "blocking": false,
+        "question": "Whether the non-GitHub fixture should remain synthetic or be derived from an existing chat or CLI subject."
+      },
+      {
+        "id": "oq-proposal-file-convention",
+        "blocking": false,
+        "question": "Whether docs/skill-proposals/ already has a required naming or template convention."
+      },
+      {
+        "id": "oq-draft-pr-authority",
+        "blocking": true,
+        "question": "Whether workflow-gate approval is available for any draft PR refresh follow-on."
+      }
+    ]
+  },
+  "harness_fixture": [
+    {
+      "name": "github-issue-distillation-happy-path",
+      "kind": "chain",
+      "target": "../docs/skill-proposals/collaboration-issue-distillation/execution-profile.yaml",
+      "inputs": {
+        "subject_locator": "https://github.com/nilstate/aster/issues/110",
+        "subject_memory": {
+          "provider": "github_issue_thread",
+          "canonical_evidence_refs": [
+            "https://github.com/nilstate/aster/issues/110",
+            "https://github.com/nilstate/aster/issues/110#issuecomment-4288494563",
+            "https://github.com/nilstate/aster/issues/110#issuecomment-4288534647"
+          ],
+          "adapter_snapshot": {
+            "title": "[skill] Add a collaboration issue distillation skill",
+            "objective": "Add a governed runx skill proposal for a collaboration issue distillation skill that turns a bounded GitHub issue thread into a reusable approval packet and maintainer recap before any publish or build gate proceeds.",
+            "rationale_excerpt": "We want issue review to train the operator. Human rationale should become explicit, rebuildable context rather than hidden prompt sprawl.",
+            "amendments": [
+              "hard-cut the core contract to subject_locator, subject_memory, and publication_target",
+              "separate canonical evidence, distilled findings, and publish/build readiness",
+              "publish_authorization — Refresh the single rolling skill-lab draft PR for this issue from the same work ledger"
+            ]
+          },
+          "derived_context_refs": [
+            "state/thread-teaching.json",
+            "docs/philosophy.md",
+            "docs/operations.md"
+          ],
+          "snapshot_generated_at": "2026-04-21T13:11:10Z"
+        },
+        "publication_target": {
+          "target": "single rolling skill-lab draft PR for issue #110",
+          "mode": "draft-only",
+          "approval_mode": "workflow_gate",
+          "draft_only": true
+        }
+      },
+      "expect": {
+        "status": "success",
+        "receipt": {
+          "kind": "chain_execution",
+          "status": "success",
+          "subject": {
+            "chain_name": "collaboration-issue-distillation"
+          }
+        },
+        "steps": [
+          "normalize-subject-contract",
+          "assemble-canonical-evidence",
+          "distill-collaboration-findings",
+          "assess-publish-build-readiness",
+          "emit-artifact-packet"
+        ],
+        "outputs": {
+          "canonical_evidence": {
+            "present": true,
+            "separate_from_findings": true
+          },
+          "distilled_findings": {
+            "present": true,
+            "separate_from_readiness": true
+          },
+          "publish_build_readiness": {
+            "present": true,
+            "publication_mode": "draft-only",
+            "authorization_state": "approval_required"
+          }
+        }
+      }
+    },
+    {
+      "name": "non-github-chat-adapter-happy-path",
+      "kind": "chain",
+      "target": "../docs/skill-proposals/collaboration-issue-distillation/execution-profile.yaml",
+      "inputs": {
+        "subject_locator": "chat-review-issue-110-equivalent",
+        "subject_memory": {
+          "provider": "chat_thread",
+          "canonical_evidence_refs": [
+            "message-1",
+            "message-2",
+            "message-3"
+          ],
+          "adapter_snapshot": {
+            "objective": "Distill a bounded collaboration review into reusable approval artifacts before publication.",
+            "messages": [
+              {
+                "id": "message-1",
+                "author_role": "maintainer",
+                "body": "Keep the core contract to subject_locator, subject_memory, and publication_target."
+              },
+              {
+                "id": "message-2",
+                "author_role": "maintainer",
+                "body": "Separate canonical evidence, findings, and readiness."
+              },
+              {
+                "id": "message-3",
+                "author_role": "maintainer",
+                "body": "Any publication remains draft-only and approval-gated."
+              }
+            ]
+          },
+          "snapshot_generated_at": "2026-04-21T13:11:10Z"
+        },
+        "publication_target": {
+          "target": "draft-only collaboration recap",
+          "mode": "draft-only",
+          "approval_mode": "workflow_gate",
+          "draft_only": true
+        }
+      },
+      "expect": {
+        "status": "success",
+        "receipt": {
+          "kind": "chain_execution",
+          "status": "success",
+          "subject": {
+            "chain_name": "collaboration-issue-distillation"
+          }
+        },
+        "steps": [
+          "normalize-subject-contract",
+          "assemble-canonical-evidence",
+          "distill-collaboration-findings",
+          "assess-publish-build-readiness",
+          "emit-artifact-packet"
+        ],
+        "outputs": {
+          "canonical_evidence": {
+            "present": true
+          },
+          "distilled_findings": {
+            "present": true
+          },
+          "publish_build_readiness": {
+            "present": true,
+            "publication_mode": "draft-only",
+            "authorization_state": "approval_required"
+          }
+        }
+      }
+    },
+    {
+      "name": "missing-rationale-needs-resolution",
+      "kind": "chain",
+      "target": "../docs/skill-proposals/collaboration-issue-distillation/execution-profile.yaml",
+      "inputs": {
+        "subject_locator": "https://github.com/nilstate/aster/issues/110",
+        "subject_memory": {
+          "provider": "github_issue_thread",
+          "canonical_evidence_refs": [
+            "https://github.com/nilstate/aster/issues/110"
+          ],
+          "adapter_snapshot": {
+            "title": "[skill] Add a collaboration issue distillation skill",
+            "objective": "Draft the proposal.",
+            "comments": [
+              {
+                "id": "issue-body-only",
+                "body": "Please draft this proposal."
+              }
+            ]
+          },
+          "snapshot_generated_at": "2026-04-21T13:11:10Z"
+        },
+        "publication_target": {
+          "target": "single rolling skill-lab draft PR for issue #110",
+          "mode": "draft-only",
+          "approval_mode": "workflow_gate",
+          "draft_only": true
+        }
+      },
+      "expect": {
+        "status": "needs_resolution",
+        "receipt": {
+          "kind": "chain_execution",
+          "status": "needs_resolution",
+          "subject": {
+            "chain_name": "collaboration-issue-distillation"
+          }
+        },
+        "steps": [
+          "normalize-subject-contract",
+          "assemble-canonical-evidence",
+          "distill-collaboration-findings",
+          "assess-publish-build-readiness",
+          "emit-artifact-packet"
+        ],
+        "outputs": {
+          "publish_build_readiness": {
+            "present": true,
+            "decision": "blocked",
+            "blocking_reason": "missing_rationale"
+          }
+        }
+      }
+    },
+    {
+      "name": "conflicting-comments-needs-resolution",
+      "kind": "chain",
+      "target": "../docs/skill-proposals/collaboration-issue-distillation/execution-profile.yaml",
+      "inputs": {
+        "subject_locator": "https://github.com/nilstate/aster/issues/110",
+        "subject_memory": {
+          "provider": "github_issue_thread",
+          "canonical_evidence_refs": [
+            "https://github.com/nilstate/aster/issues/110",
+            "https://github.com/nilstate/aster/issues/110#issuecomment-4288494563"
+          ],
+          "adapter_snapshot": {
+            "title": "[skill] Add a collaboration issue distillation skill",
+            "comments": [
+              {
+                "id": "c1",
+                "body": "Keep the core contract to subject_locator, subject_memory, and publication_target."
+              },
+              {
+                "id": "c2",
+                "body": "Make GitHub issue the primary contract noun."
+              }
+            ]
+          },
+          "snapshot_generated_at": "2026-04-21T13:11:10Z"
+        },
+        "publication_target": {
+          "target": "single rolling skill-lab draft PR for issue #110",
+          "mode": "draft-only",
+          "approval_mode": "workflow_gate",
+          "draft_only": true
+        }
+      },
+      "expect": {
+        "status": "needs_resolution",
+        "receipt": {
+          "kind": "chain_execution",
+          "status": "needs_resolution",
+          "subject": {
+            "chain_name": "collaboration-issue-distillation"
+          }
+        },
+        "steps": [
+          "normalize-subject-contract",
+          "assemble-canonical-evidence",
+          "distill-collaboration-findings",
+          "assess-publish-build-readiness",
+          "emit-artifact-packet"
+        ],
+        "outputs": {
+          "publish_build_readiness": {
+            "present": true,
+            "decision": "blocked",
+            "blocking_reason": "conflicting_comments"
+          }
+        }
+      }
+    },
+    {
+      "name": "stale-evidence-needs-resolution",
+      "kind": "chain",
+      "target": "../docs/skill-proposals/collaboration-issue-distillation/execution-profile.yaml",
+      "inputs": {
+        "subject_locator": "https://github.com/nilstate/aster/issues/110",
+        "subject_memory": {
+          "provider": "github_issue_thread",
+          "canonical_evidence_refs": [
+            "https://github.com/nilstate/aster/issues/110",
+            "https://github.com/nilstate/aster/issues/110#issuecomment-4288494563",
+            "https://github.com/nilstate/aster/issues/110#issuecomment-4288534647"
+          ],
+          "adapter_snapshot": {
+            "title": "[skill] Add a collaboration issue distillation skill",
+            "rationale_excerpt": "We want issue review to train the operator.",
+            "amendments": [
+              "hard-cut the core contract",
+              "keep publication draft-only"
+            ]
+          },
+          "snapshot_generated_at": "2026-04-20T00:00:00Z"
+        },
+        "publication_target": {
+          "target": "single rolling skill-lab draft PR for issue #110",
+          "mode": "draft-only",
+          "approval_mode": "workflow_gate",
+          "draft_only": true,
+          "required_evidence_after": "2026-04-21T12:30:59Z"
+        }
+      },
+      "expect": {
+        "status": "needs_resolution",
+        "receipt": {
+          "kind": "chain_execution",
+          "status": "needs_resolution",
+          "subject": {
+            "chain_name": "collaboration-issue-distillation"
+          }
+        },
+        "steps": [
+          "normalize-subject-contract",
+          "assemble-canonical-evidence",
+          "distill-collaboration-findings",
+          "assess-publish-build-readiness",
+          "emit-artifact-packet"
+        ],
+        "outputs": {
+          "publish_build_readiness": {
+            "present": true,
+            "decision": "blocked",
+            "blocking_reason": "stale_evidence"
+          }
+        }
+      }
+    }
+  ],
+  "acceptance_checks": [
+    {
+      "id": "ac-core-contract-only",
+      "assertion": "The skill requires only subject_locator, subject_memory, and publication_target as top-level inputs; adapter-specific details remain nested under subject_memory.",
+      "covered_by": [
+        "github-issue-distillation-happy-path",
+        "non-github-chat-adapter-happy-path"
+      ]
+    },
+    {
+      "id": "ac-github-is-adapter-not-core-noun",
+      "assertion": "A GitHub issue thread is treated as one adapter surface and the same chain succeeds for a non-GitHub bounded subject with the same approval semantics.",
+      "covered_by": [
+        "github-issue-distillation-happy-path",
+        "non-github-chat-adapter-happy-path"
+      ]
+    },
+    {
+      "id": "ac-separate-artifact-classes",
+      "assertion": "The chain emits separate canonical_evidence, distilled_findings, and publish_build_readiness outputs rather than one collapsed packet.",
+      "covered_by": [
+        "github-issue-distillation-happy-path",
+        "non-github-chat-adapter-happy-path"
+      ]
+    },
+    {
+      "id": "ac-canonical-over-derived",
+      "assertion": "Canonical evidence refs are preserved in output and derived context does not replace them.",
+      "covered_by": [
+        "github-issue-distillation-happy-path"
+      ]
+    },
+    {
+      "id": "ac-missing-rationale-blocks-readiness",
+      "assertion": "If the bounded subject lacks explicit rationale, the chain returns needs_resolution and marks publish_build_readiness as blocked for missing_rationale.",
+      "covered_by": [
+        "missing-rationale-needs-resolution"
+      ]
+    },
+    {
+      "id": "ac-conflicting-comments-block-readiness",
+      "assertion": "If comments or amendments conflict on the governing direction, the chain returns needs_resolution and marks publish_build_readiness as blocked for conflicting_comments.",
+      "covered_by": [
+        "conflicting-comments-needs-resolution"
+      ]
+    },
+    {
+      "id": "ac-stale-evidence-blocks-readiness",
+      "assertion": "If subject_memory is older than publication_target.required_evidence_after, the chain returns needs_resolution and marks publish_build_readiness as blocked for stale_evidence.",
+      "covered_by": [
+        "stale-evidence-needs-resolution"
+      ]
+    },
+    {
+      "id": "ac-draft-only-publication-semantics",
+      "assertion": "Successful distillation preserves draft-only publication semantics and does not imply publish authorization; readiness records approval_required when workflow-gated publication is requested.",
+      "covered_by": [
+        "github-issue-distillation-happy-path",
+        "non-github-chat-adapter-happy-path"
+      ]
+    },
+    {
+      "id": "ac-amendments-remain-rebuildable",
+      "assertion": "Maintainer amendments are carried through explicit canonical_evidence_refs or adapter_snapshot content in subject_memory, not hidden prompt-only state.",
+      "covered_by": [
+        "github-issue-distillation-happy-path"
+      ]
+    }
+  ]
+}
