@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-20T07:06:12.994Z",
+  "generated_at": "2026-04-22T04:21:05.062Z",
   "source": {
     "type": "github_search",
     "marker": "aster:thread-teaching-record",
@@ -15,6 +15,142 @@
   },
   "errors": [],
   "records": [
+    {
+      "record_id": "nilstate-aster-issue-113-lesson-2026-04-22t04-00-58z",
+      "repo": "nilstate/aster",
+      "thread": "nilstate/aster#issue/113",
+      "thread_kind": "issue",
+      "thread_number": 113,
+      "thread_title": "[skill] Propose issue-ledger-followup for amendment-aware work loops",
+      "thread_url": "https://github.com/nilstate/aster/issues/113",
+      "thread_state": "open",
+      "status": "active",
+      "thread_teaching_record": {
+        "record_id": "nilstate-aster-issue-113-lesson-2026-04-22t04-00-58z",
+        "kind": "lesson",
+        "summary": "The live rerun proved the issue-ledger loop works, but the surfaced proposal collapsed to a thin stub even though the internal steps produced substantive findings.",
+        "recorded_by": "kam",
+        "target_repo": "nilstate/aster",
+        "subject_locator": "nilstate/aster#issue/113",
+        "objective_fingerprint": null,
+        "expires_after": null,
+        "applies_to": [],
+        "invariants": [],
+        "notes": [
+          "Keep the single-issue ledger model.",
+          "On the next refresh, surface the actual findings from this run instead of only the slug summary.",
+          "Carry forward the concrete design points already produced internally: portable subject memory plus subject_locator, one bounded next-action packet, stop-before-publish, and the open questions around trusted amendments, retrigger policy, packet-shape reuse, and publication surface.",
+          "If a repo-read follow-up is required to verify existing packet or schema reuse, say that plainly rather than implying the proposal is final.",
+          "In the refreshed issue update, call out exactly what changed because of this amendment comment so we can verify the living-ledger loop end to end."
+        ],
+        "labels": [],
+        "decisions": [],
+        "supersedes": [],
+        "repo": "nilstate/aster",
+        "thread_kind": "issue",
+        "thread_number": 113,
+        "source_type": "issue_comment",
+        "source_url": "https://github.com/nilstate/aster/issues/113#issuecomment-4293412119",
+        "author": "auscaster",
+        "author_association": "MEMBER",
+        "recorded_at": "2026-04-22T04:00:58Z",
+        "status": "active"
+      }
+    },
+    {
+      "record_id": "nilstate-aster-issue-110-publish-authorization-2026-04-21t12-30-59z",
+      "repo": "nilstate/aster",
+      "thread": "nilstate/aster#issue/110",
+      "thread_kind": "issue",
+      "thread_number": 110,
+      "thread_title": "[skill] Add a collaboration issue distillation skill",
+      "thread_url": "https://github.com/nilstate/aster/issues/110",
+      "thread_state": "open",
+      "status": "active",
+      "thread_teaching_record": {
+        "record_id": "nilstate-aster-issue-110-publish-authorization-2026-04-21t12-30-59z",
+        "kind": "publish_authorization",
+        "summary": "Refresh the single rolling skill-lab draft PR for this issue from the same work ledger.",
+        "recorded_by": "kam",
+        "target_repo": "nilstate/aster",
+        "subject_locator": "nilstate/aster#issue/110",
+        "objective_fingerprint": null,
+        "expires_after": null,
+        "applies_to": [
+          "skill-lab.publish"
+        ],
+        "invariants": [
+          "Refresh PR #111 only; do not open a second draft PR for this issue."
+        ],
+        "notes": [],
+        "labels": [],
+        "decisions": [
+          {
+            "gate_id": "skill-lab.publish",
+            "decision": "allow",
+            "reason": "refresh the existing rolling draft PR from the same issue ledger"
+          }
+        ],
+        "supersedes": [],
+        "repo": "nilstate/aster",
+        "thread_kind": "issue",
+        "thread_number": 110,
+        "source_type": "issue_comment",
+        "source_url": "https://github.com/nilstate/aster/issues/110#issuecomment-4288534647",
+        "author": "auscaster",
+        "author_association": "MEMBER",
+        "recorded_at": "2026-04-21T12:30:59Z",
+        "status": "active"
+      }
+    },
+    {
+      "record_id": "nilstate-aster-issue-104-publish-authorization-2026-04-20t11-00-05z",
+      "repo": "nilstate/aster",
+      "thread": "nilstate/aster#issue/104",
+      "thread_kind": "issue",
+      "thread_number": 104,
+      "thread_title": "[collaboration] authorize skill-upstream publication for sourcey/sourcey",
+      "thread_url": "https://github.com/nilstate/aster/issues/104",
+      "thread_state": "closed",
+      "status": "active",
+      "thread_teaching_record": {
+        "record_id": "nilstate-aster-issue-104-publish-authorization-2026-04-20t11-00-05z",
+        "kind": "publish_authorization",
+        "summary": "Publish a draft upstream SKILL.md PR describing sourcey operator workflows.",
+        "recorded_by": "auscaster",
+        "target_repo": "sourcey/sourcey",
+        "subject_locator": "sourcey/sourcey",
+        "objective_fingerprint": null,
+        "expires_after": null,
+        "applies_to": [
+          "skill-upstream.publish"
+        ],
+        "invariants": [
+          "Keep the contribution bounded, additive only, and non-marketing."
+        ],
+        "notes": [
+          "Happy-path dogfood target 1. SKILL.md should cover install, build, test, and publish flow grounded in package.json scripts and the release workflow. Part of dogfood-skill-chain-approval-gates spec."
+        ],
+        "labels": [],
+        "decisions": [
+          {
+            "gate_id": "skill-upstream.publish",
+            "decision": "allow",
+            "reason": "bounded draft contribution is approved for sourcey/sourcey"
+          }
+        ],
+        "supersedes": [],
+        "repo": "nilstate/aster",
+        "thread_kind": "issue",
+        "thread_number": 104,
+        "source_type": "issue_body",
+        "source_url": "https://github.com/nilstate/aster/issues/104",
+        "author": "auscaster",
+        "author_association": "MEMBER",
+        "recorded_at": "2026-04-20T11:00:05Z",
+        "status": "active"
+      }
+    },
     {
       "record_id": "nilstate-aster-issue-54-publish-authorization-2026-04-20t04-44-06z",
       "repo": "nilstate/aster",
@@ -67,7 +203,119 @@
   "teaching_rows": [
     {
       "kind": "runx.aster-thread-teaching-row.v1",
-      "generated_at": "2026-04-20T07:06:12.994Z",
+      "generated_at": "2026-04-22T04:21:05.062Z",
+      "repo": "nilstate/aster",
+      "thread": "nilstate/aster#issue/113",
+      "thread_kind": "issue",
+      "thread_number": 113,
+      "thread_title": "[skill] Propose issue-ledger-followup for amendment-aware work loops",
+      "thread_url": "https://github.com/nilstate/aster/issues/113",
+      "thread_state": "open",
+      "record_id": "nilstate-aster-issue-113-lesson-2026-04-22t04-00-58z",
+      "record_kind": "lesson",
+      "status": "active",
+      "recorded_at": "2026-04-22T04:00:58Z",
+      "recorded_by": "kam",
+      "source_type": "issue_comment",
+      "source_url": "https://github.com/nilstate/aster/issues/113#issuecomment-4293412119",
+      "target_repo": "nilstate/aster",
+      "subject_locator": "nilstate/aster#issue/113",
+      "objective_fingerprint": null,
+      "summary": "The live rerun proved the issue-ledger loop works, but the surfaced proposal collapsed to a thin stub even though the internal steps produced substantive findings.",
+      "applies_to": [],
+      "labels": [],
+      "invariants": [],
+      "notes": [
+        "Keep the single-issue ledger model.",
+        "On the next refresh, surface the actual findings from this run instead of only the slug summary.",
+        "Carry forward the concrete design points already produced internally: portable subject memory plus subject_locator, one bounded next-action packet, stop-before-publish, and the open questions around trusted amendments, retrigger policy, packet-shape reuse, and publication surface.",
+        "If a repo-read follow-up is required to verify existing packet or schema reuse, say that plainly rather than implying the proposal is final.",
+        "In the refreshed issue update, call out exactly what changed because of this amendment comment so we can verify the living-ledger loop end to end."
+      ],
+      "decisions": [],
+      "supersedes": []
+    },
+    {
+      "kind": "runx.aster-thread-teaching-row.v1",
+      "generated_at": "2026-04-22T04:21:05.062Z",
+      "repo": "nilstate/aster",
+      "thread": "nilstate/aster#issue/110",
+      "thread_kind": "issue",
+      "thread_number": 110,
+      "thread_title": "[skill] Add a collaboration issue distillation skill",
+      "thread_url": "https://github.com/nilstate/aster/issues/110",
+      "thread_state": "open",
+      "record_id": "nilstate-aster-issue-110-publish-authorization-2026-04-21t12-30-59z",
+      "record_kind": "publish_authorization",
+      "status": "active",
+      "recorded_at": "2026-04-21T12:30:59Z",
+      "recorded_by": "kam",
+      "source_type": "issue_comment",
+      "source_url": "https://github.com/nilstate/aster/issues/110#issuecomment-4288534647",
+      "target_repo": "nilstate/aster",
+      "subject_locator": "nilstate/aster#issue/110",
+      "objective_fingerprint": null,
+      "summary": "Refresh the single rolling skill-lab draft PR for this issue from the same work ledger.",
+      "applies_to": [
+        "skill-lab.publish"
+      ],
+      "labels": [],
+      "invariants": [
+        "Refresh PR #111 only; do not open a second draft PR for this issue."
+      ],
+      "notes": [],
+      "decisions": [
+        {
+          "gate_id": "skill-lab.publish",
+          "decision": "allow",
+          "reason": "refresh the existing rolling draft PR from the same issue ledger"
+        }
+      ],
+      "supersedes": []
+    },
+    {
+      "kind": "runx.aster-thread-teaching-row.v1",
+      "generated_at": "2026-04-22T04:21:05.062Z",
+      "repo": "nilstate/aster",
+      "thread": "nilstate/aster#issue/104",
+      "thread_kind": "issue",
+      "thread_number": 104,
+      "thread_title": "[collaboration] authorize skill-upstream publication for sourcey/sourcey",
+      "thread_url": "https://github.com/nilstate/aster/issues/104",
+      "thread_state": "closed",
+      "record_id": "nilstate-aster-issue-104-publish-authorization-2026-04-20t11-00-05z",
+      "record_kind": "publish_authorization",
+      "status": "active",
+      "recorded_at": "2026-04-20T11:00:05Z",
+      "recorded_by": "auscaster",
+      "source_type": "issue_body",
+      "source_url": "https://github.com/nilstate/aster/issues/104",
+      "target_repo": "sourcey/sourcey",
+      "subject_locator": "sourcey/sourcey",
+      "objective_fingerprint": null,
+      "summary": "Publish a draft upstream SKILL.md PR describing sourcey operator workflows.",
+      "applies_to": [
+        "skill-upstream.publish"
+      ],
+      "labels": [],
+      "invariants": [
+        "Keep the contribution bounded, additive only, and non-marketing."
+      ],
+      "notes": [
+        "Happy-path dogfood target 1. SKILL.md should cover install, build, test, and publish flow grounded in package.json scripts and the release workflow. Part of dogfood-skill-chain-approval-gates spec."
+      ],
+      "decisions": [
+        {
+          "gate_id": "skill-upstream.publish",
+          "decision": "allow",
+          "reason": "bounded draft contribution is approved for sourcey/sourcey"
+        }
+      ],
+      "supersedes": []
+    },
+    {
+      "kind": "runx.aster-thread-teaching-row.v1",
+      "generated_at": "2026-04-22T04:21:05.062Z",
       "repo": "nilstate/aster",
       "thread": "nilstate/aster#issue/54",
       "thread_kind": "issue",
