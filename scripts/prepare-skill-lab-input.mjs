@@ -69,6 +69,7 @@ export function prepareSkillLabInput(issue = {}, options = {}) {
       "Turn unresolved ambiguity into explicit maintainer decisions rather than placeholder targets or internal residue.",
       "Write from the maintainer's viewpoint. Do not describe evidence as 'supplied work-plan', 'supplied catalog', 'supplied decomposition', 'agent output', or 'model output'.",
       "When discussing catalog fit, name the adjacent capability and boundary directly: 'Compared with issue-triage...' not 'Based on the supplied catalog...'.",
+      "Never use the word 'supplied' or the builder noun 'envelope' in reader-facing proposal text; use 'current', 'available', 'source', or a named capability instead.",
     ]),
     catalogEntries.length > 0
       ? [
