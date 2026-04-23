@@ -19,8 +19,10 @@ if (!body) {
         mode: payload.response_draft?.mode ?? null,
         reason: firstNonEmptyString(
           payload.response_strategy?.next_best_action,
+          payload.response_strategy?.next_best_step,
           payload.response_draft?.internal_handoff,
           payload.response_strategy?.recommended_posture,
+          payload.response_strategy?.recommended_action,
         ) ?? "The triage run did not recommend a public comment.",
       }, null, 2)}\n`);
     }
@@ -79,8 +81,15 @@ function isNoPublicComment(payload) {
   if (payload?.response_strategy?.should_post_public_comment === false) {
     return true;
   }
+  if (payload?.response_draft?.should_post === false) {
+    return true;
+  }
   const mode = String(payload?.response_draft?.mode ?? "").toLowerCase();
   if (["internal_no_op", "no_public_comment", "no_op", "internal"].includes(mode)) {
+    return true;
+  }
+  const recommendedAction = String(payload?.response_strategy?.recommended_action ?? "").toLowerCase();
+  if (["no_public_comment", "defer_public_comment"].includes(recommendedAction)) {
     return true;
   }
   return payload?.response_draft?.public_comment === null

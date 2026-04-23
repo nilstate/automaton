@@ -66,3 +66,38 @@ test("write-triage-comment treats internal no-op as a successful skip", async ()
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test("write-triage-comment treats should_post false as a successful skip", async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), "aster-triage-comment-"));
+  try {
+    const input = path.join(dir, "result.json");
+    const output = path.join(dir, "comment.md");
+    await writeFile(input, JSON.stringify({
+      execution: {
+        stdout: JSON.stringify({
+          response_strategy: {
+            recommended_action: "no_public_comment",
+            next_best_step: "Inspect receipts before promotion.",
+          },
+          response_draft: {
+            should_post: false,
+            public_comment: "",
+            internal_handoff: "No maintainer comment recommended right now.",
+          },
+        }),
+      },
+    }));
+
+    const stdout = execFileSync("node", [scriptPath, "--input", input, "--output", output], { encoding: "utf8" });
+
+    assert.equal(stdout, "No public triage comment recommended.\n");
+    assert.equal(existsSync(output), false);
+    assert.deepEqual(JSON.parse(await readFile(path.join(dir, "comment.decision.json"), "utf8")), {
+      status: "no_public_comment",
+      mode: null,
+      reason: "Inspect receipts before promotion.",
+    });
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
