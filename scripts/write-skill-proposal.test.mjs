@@ -294,7 +294,7 @@ test("buildSkillProposalMarkdown cleans machine-framed reader prose", () => {
       ],
       catalog_fit: {
         adjacent_skills: ["issue-triage"],
-        why_new: "Compared with issue-triage, this owns the decision handoff.",
+        why_new: "The provided catalog evidence does not show this handoff.",
       },
       acceptance_checks: [
         "The machine should produce a reviewable packet.",
@@ -315,9 +315,11 @@ test("buildSkillProposalMarkdown cleans machine-framed reader prose", () => {
   assert.match(markdown, /the skill should return a compact decision brief from prior run artifacts/i);
   assert.match(markdown, /Maintainers lose time reconstructing state from prior run artifacts\./);
   assert.match(markdown, /the skill should expose one answer instead of asking maintainers to replay run output/i);
+  assert.match(markdown, /The current catalog does not show this handoff\./);
   assert.match(markdown, /when no policy is provided/i);
   assert.doesNotMatch(markdown, /\bmachine output\b/i);
   assert.doesNotMatch(markdown, /\bagent output\b/i);
   assert.doesNotMatch(markdown, /\bthe machine should\b/i);
   assert.doesNotMatch(markdown, /\bsupplied\b/i);
+  assert.doesNotMatch(markdown, /\bprovided catalog evidence\b/i);
 });

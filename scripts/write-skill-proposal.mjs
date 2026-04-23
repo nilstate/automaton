@@ -568,6 +568,9 @@ function cleanReaderFacingText(value) {
     return null;
   }
   return String(value)
+    .replace(/\b(?:supplied|provided)\s+catalog\s+evidence\b/gi, "current catalog")
+    .replace(/\b(?:supplied|provided)\s+catalog\s+entries\b/gi, "current catalog entries")
+    .replace(/\b(?:supplied|provided)\s+catalog\b/gi, "current catalog")
     .replace(/\bsupplied\b/gi, "provided")
     .replace(/\bprior\s+(?:machine|agent|model|llm|ai)\s+output\b/gi, "prior run artifacts")
     .replace(/\b(?:machine|agent|model|llm|ai)\s+output\b/gi, "run output")

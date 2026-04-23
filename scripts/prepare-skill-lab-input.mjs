@@ -70,6 +70,7 @@ export function prepareSkillLabInput(issue = {}, options = {}) {
       "Write from the maintainer's viewpoint. Do not describe evidence as 'supplied work-plan', 'supplied catalog', 'supplied decomposition', 'machine output', 'agent output', or 'model output'.",
       "Do not write 'the machine should' or similar instruction-framing in the proposal body; name what the skill gives the maintainer.",
       "When discussing catalog fit, name the adjacent capability and boundary directly: 'Compared with issue-triage...' not 'Based on the supplied catalog...'.",
+      "Do not describe catalog context as 'provided catalog evidence'; write 'current catalog' or name the adjacent entries directly.",
       "Never use the word 'supplied' or the builder noun 'envelope' in reader-facing proposal text; use 'current', 'available', 'source', or a named capability instead.",
     ]),
     catalogEntries.length > 0

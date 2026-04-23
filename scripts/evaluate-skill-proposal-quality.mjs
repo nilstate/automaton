@@ -15,6 +15,11 @@ const residuePatterns = [
     message: "Replace builder-source framing like 'envelope' with concrete source, catalog, or provenance language.",
   },
   {
+    id: "provided_catalog_evidence",
+    pattern: /\bprovided\s+catalog(?:\s+evidence|\s+entries)?\b/i,
+    message: "Say 'current catalog' or name the adjacent skills directly instead of describing catalog context as provided evidence.",
+  },
+  {
     id: "unresolved_placeholder",
     pattern: /\bUNRESOLVED_[A-Z0-9_]+\b/,
     message: "Do not leak unresolved placeholder tokens into a first-party proposal.",
