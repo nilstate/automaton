@@ -346,6 +346,7 @@ function hasCatalogBoundary(value) {
     value.adjacent_skills,
     value.adjacent_chains,
     value.adjacent_catalog_entries,
+    value.adjacent_capabilities,
     value.overlap,
   ].some((entry) => Array.isArray(entry) ? entry.length > 0 : Boolean(firstNonEmptyString(entry)));
   const boundary = firstNonEmptyString(
@@ -356,6 +357,7 @@ function hasCatalogBoundary(value) {
     value.differentiator,
     value.rationale,
     value.positioning,
+    value.conclusion,
   );
   return adjacent && Boolean(boundary);
 }
