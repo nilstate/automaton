@@ -6,8 +6,8 @@ import { extractSkillProposalPayload } from "./write-skill-proposal.mjs";
 const residuePatterns = [
   {
     id: "supplied_decomposition",
-    pattern: /\bsupplied decomposition\b/i,
-    message: "Replace builder residue like 'supplied decomposition' with maintainer-facing proposal language.",
+    pattern: /\bsupplied (?:decomposition|work[- ]?plan|catalog|plan|packet|context|brief|input|envelope)\b/i,
+    message: "Replace builder-source framing like 'supplied work-plan' or 'supplied decomposition' with maintainer-facing proposal language.",
   },
   {
     id: "unresolved_placeholder",

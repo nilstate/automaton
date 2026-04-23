@@ -67,6 +67,8 @@ export function prepareSkillLabInput(issue = {}, options = {}) {
       "Explain fit against the current runx catalog and why this is not just duplication of an adjacent skill or chain.",
       "If the idea is better handled by Sourcey, draft-content, an existing skill, or a chain amendment, say that instead of forcing a new skill.",
       "Turn unresolved ambiguity into explicit maintainer decisions rather than placeholder targets or internal residue.",
+      "Write from the maintainer's viewpoint. Do not describe evidence as 'supplied work-plan', 'supplied catalog', 'supplied decomposition', 'agent output', or 'model output'.",
+      "When discussing catalog fit, name the adjacent capability and boundary directly: 'Compared with issue-triage...' not 'Based on the supplied catalog...'.",
     ]),
     catalogEntries.length > 0
       ? [

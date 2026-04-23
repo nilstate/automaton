@@ -252,6 +252,39 @@ test("evaluateSkillProposalQuality accepts catalog fit with adjacent entries and
   assert.equal(evaluation.checks.catalog_worthiness, true);
 });
 
+test("evaluateSkillProposalQuality rejects supplied catalog and work-plan framing", () => {
+  const evaluation = evaluateSkillProposalQuality({
+    report: {
+      execution: {
+        stdout: JSON.stringify({
+          skill_spec: {
+            skill_name: "decision-brief",
+            summary: "Read one bounded thread and return one concise maintainer decision packet.",
+            inputs: [{ name: "thread_body", type: "string" }],
+            outputs: [{ name: "decision_packet", type: "object" }],
+          },
+          pain_points: ["Maintainers need one decision packet instead of replaying a thread."],
+          catalog_fit: {
+            adjacent_entries: [
+              { name: "issue-triage", why_not_enough: "It routes work but does not emit the handoff packet." },
+            ],
+            summary: "Based on the supplied catalog, this fills a narrow gap after the supplied work-plan.",
+          },
+          maintainer_decisions: [{ question: "Approve this as a new skill?" }],
+          findings: [{ claim: "The source issue asks for one decision handoff." }],
+          acceptance_checks: [{ id: "ac-1" }, { id: "ac-2" }, { id: "ac-3" }],
+          harness_fixture: [{ name: "success" }],
+        }),
+      },
+    },
+    catalogEntries: ["issue-triage"],
+  });
+
+  assert.equal(evaluation.status, "needs_review");
+  assert.equal(evaluation.checks.builder_residue_free, false);
+  assert.equal(evaluation.findings.some((finding) => finding.id === "supplied_decomposition"), true);
+});
+
 test("evaluateSkillProposalQuality flags builder residue and missing catalog fit", () => {
   const evaluation = evaluateSkillProposalQuality({
     report: {
