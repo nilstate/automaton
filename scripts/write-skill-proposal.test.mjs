@@ -248,3 +248,73 @@ test("buildSkillProposalMarkdown uses purpose when summary is absent", () => {
   assert.doesNotMatch(markdown, /\[object Object\]/);
   assert.doesNotMatch(markdown, /\{"name":/);
 });
+
+test("buildSkillProposalMarkdown prefers maintainer pain over raw issue why text", () => {
+  const markdown = buildSkillProposalMarkdown({
+    title: "Add decision brief",
+    issueUrl: "https://github.com/nilstate/aster/issues/115",
+    jsonPath: "/tmp/decision-brief.json",
+    payload: {
+      skill_spec: {
+        name: "decision-brief",
+        summary: "Return one bounded maintainer decision packet.",
+        maintainer_pain: "Maintainers need the current decision without replaying a long issue thread.",
+      },
+      acceptance_checks: ["Returns one packet.", "Stops at review.", "Preserves provenance."],
+    },
+    issuePacket: {
+      source_issue: {
+        repo: "nilstate/aster",
+        number: 115,
+      },
+      sections: {
+        why_it_matters: "The machine should turn raw issue context into an answer.",
+      },
+      amendments: [],
+    },
+  });
+
+  assert.match(markdown, /Maintainers need the current decision without replaying a long issue thread\./);
+  assert.doesNotMatch(markdown, /The machine should/);
+});
+
+test("buildSkillProposalMarkdown cleans machine-framed reader prose", () => {
+  const markdown = buildSkillProposalMarkdown({
+    title: "Add decision brief",
+    issueUrl: "https://github.com/nilstate/aster/issues/115",
+    jsonPath: "/tmp/decision-brief.json",
+    payload: {
+      skill_spec: {
+        name: "decision-brief",
+        summary: "The machine should return a compact decision brief from prior machine output.",
+        maintainer_pain: "Maintainers lose time reconstructing state from prior machine output.",
+      },
+      pain_points: [
+        "The machine should expose one answer instead of asking maintainers to replay agent output.",
+      ],
+      catalog_fit: {
+        adjacent_skills: ["issue-triage"],
+        why_new: "Compared with issue-triage, this owns the decision handoff.",
+      },
+      acceptance_checks: [
+        "The machine should produce a reviewable packet.",
+        "It keeps provenance.",
+        "It stops at review.",
+      ],
+    },
+    issuePacket: {
+      source_issue: {
+        repo: "nilstate/aster",
+        number: 115,
+      },
+      amendments: [],
+    },
+  });
+
+  assert.match(markdown, /the skill should return a compact decision brief from prior run artifacts/i);
+  assert.match(markdown, /Maintainers lose time reconstructing state from prior run artifacts\./);
+  assert.match(markdown, /the skill should expose one answer instead of asking maintainers to replay run output/i);
+  assert.doesNotMatch(markdown, /\bmachine output\b/i);
+  assert.doesNotMatch(markdown, /\bagent output\b/i);
+  assert.doesNotMatch(markdown, /\bthe machine should\b/i);
+});

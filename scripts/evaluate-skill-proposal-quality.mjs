@@ -59,6 +59,16 @@ const residuePatterns = [
     pattern: /\bGenerated skill proposal\b/i,
     message: "Replace generated-placeholder language with a concrete human-authored thesis.",
   },
+  {
+    id: "machine_output_framing",
+    pattern: /\b(?:prior\s+)?(?:machine|agent|model|llm|ai)\s+output\b/i,
+    message: "Do not frame reader-facing proposal value as machine, agent, or model output; name the maintainer artifact directly.",
+  },
+  {
+    id: "machine_actor_framing",
+    pattern: /\bthe\s+(?:machine|agent|model|llm|ai)\s+should\b/i,
+    message: "Write proposal prose from the skill or maintainer viewpoint, not as instructions to a machine.",
+  },
 ];
 
 async function main(argv = process.argv.slice(2)) {
@@ -125,7 +135,7 @@ export function evaluateSkillProposalQuality({ report, issuePacket = null, catal
   const humanGradeSurface = residueHits.length === 0
     && placeholderFree
     && countWords(summaryText) >= 8
-    && !/\b(?:automatically generated|as an ai|llm|machine-generated)\b/i.test(readerFacingProposalText);
+    && !/\b(?:automatically generated|as an ai|llm|machine-generated|ai-generated)\b/i.test(readerFacingProposalText);
   const catalogBoundaryExplicit = hasCatalogBoundary(payload?.catalog_fit);
   const implementationReady = acceptanceChecks.length >= 3
     && harnessFixtures.length > 0

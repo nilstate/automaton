@@ -6,5 +6,5 @@ workflow.
 Each proposal should contain:
 
 - one markdown summary for humans
-- one raw JSON packet for exact machine output
+- one raw JSON packet for exact structured provenance
 - a backlink to the work issue that requested the capability

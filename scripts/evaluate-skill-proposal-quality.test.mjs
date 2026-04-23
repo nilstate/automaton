@@ -349,6 +349,40 @@ test("evaluateSkillProposalQuality rejects builder envelope framing", () => {
   assert.equal(evaluation.findings.some((finding) => finding.id === "builder_envelope"), true);
 });
 
+test("evaluateSkillProposalQuality rejects machine-framed proposal prose", () => {
+  const evaluation = evaluateSkillProposalQuality({
+    report: {
+      execution: {
+        stdout: JSON.stringify({
+          skill_spec: {
+            skill_name: "decision-brief",
+            summary: "The machine should return one concise maintainer decision packet.",
+            inputs: [{ name: "thread_body", type: "string" }],
+            outputs: [{ name: "decision_packet", type: "object" }],
+          },
+          pain_points: ["Maintainers need one packet instead of replaying prior machine output."],
+          catalog_fit: {
+            adjacent_entries: [
+              { name: "issue-triage", why_not_enough: "It routes work but does not emit the handoff packet." },
+            ],
+            summary: "Compared with issue-triage, this owns the decision handoff.",
+          },
+          maintainer_decisions: [{ question: "Approve this as a new skill?" }],
+          findings: [{ claim: "The source issue asks for one decision handoff." }],
+          acceptance_checks: [{ id: "ac-1" }, { id: "ac-2" }, { id: "ac-3" }],
+          harness_fixture: [{ name: "success" }],
+        }),
+      },
+    },
+    catalogEntries: ["issue-triage"],
+  });
+
+  assert.equal(evaluation.status, "needs_review");
+  assert.equal(evaluation.checks.human_grade_surface, false);
+  assert.equal(evaluation.findings.some((finding) => finding.id === "machine_output_framing"), true);
+  assert.equal(evaluation.findings.some((finding) => finding.id === "machine_actor_framing"), true);
+});
+
 test("evaluateSkillProposalQuality flags builder residue and missing catalog fit", () => {
   const evaluation = evaluateSkillProposalQuality({
     report: {

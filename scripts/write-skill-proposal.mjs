@@ -41,17 +41,24 @@ export async function materializeSkillProposal(options) {
 
 export function buildSkillProposalMarkdown({ payload, title, issueUrl, issuePacket, jsonPath }) {
   const proposalTitle = firstNonEmptyString(payload.skill_spec?.name, payload.skill_spec?.skill_name, title);
-  const proposalDescription =
+  const proposalDescription = cleanReaderFacingText(
     payload.skill_spec?.description
     ?? payload.skill_spec?.summary
     ?? payload.skill_spec?.purpose
-    ?? "First-party runx skill proposal.";
+    ?? "First-party runx skill proposal.",
+  );
   const acceptanceChecks = formatAcceptanceChecks(payload.acceptance_checks);
-  const effectiveObjective =
+  const effectiveObjective = cleanReaderFacingText(
     firstNonEmptyString(payload.skill_spec?.objective, payload.skill_spec?.summary, payload.skill_spec?.purpose, title)
-    ?? "Define the bounded job this skill should perform.";
+    ?? "Define the bounded job this skill should perform.",
+  );
 
   const sourceSections = issuePacket?.sections ?? {};
+  const whyThisMatters = cleanReaderFacingText(firstNonEmptyString(
+    payload.skill_spec?.maintainer_pain,
+    payload.why_this_matters,
+    sourceSections.why_it_matters,
+  ));
   const maintainerAmendments = Array.isArray(issuePacket?.amendments) ? issuePacket.amendments : [];
   const findings = Array.isArray(payload.findings) ? payload.findings : [];
   const recommendedFlow = Array.isArray(payload.recommended_flow) ? payload.recommended_flow : [];
@@ -85,8 +92,8 @@ export function buildSkillProposalMarkdown({ payload, title, issueUrl, issuePack
     "",
   ];
 
-  if (sourceSections.why_it_matters) {
-    lines.push("## Why This Matters", "", sourceSections.why_it_matters, "");
+  if (whyThisMatters) {
+    lines.push("## Why This Matters", "", whyThisMatters, "");
   }
 
   lines.push(
@@ -97,7 +104,7 @@ export function buildSkillProposalMarkdown({ payload, title, issueUrl, issuePack
     `- name: \`${firstNonEmptyString(payload.skill_spec?.name, payload.skill_spec?.skill_name) ?? "unknown"}\``,
     payload.skill_spec?.kind ? `- kind: \`${payload.skill_spec.kind}\`` : null,
     payload.skill_spec?.status ? `- status: \`${payload.skill_spec.status}\`` : null,
-    `- description: ${payload.skill_spec?.description ?? payload.skill_spec?.summary ?? payload.skill_spec?.purpose ?? "n/a"}`,
+    `- description: ${cleanReaderFacingText(payload.skill_spec?.description ?? payload.skill_spec?.summary ?? payload.skill_spec?.purpose ?? "n/a")}`,
     Array.isArray(payload.skill_spec?.composes_with) && payload.skill_spec.composes_with.length > 0
       ? `- composes_with: ${payload.skill_spec.composes_with.map((value) => `\`${value}\``).join(", ")}`
       : null,
@@ -200,24 +207,24 @@ function yamlString(value) {
 
 function formatAcceptanceChecks(value) {
   if (!Array.isArray(value) || value.length === 0) {
-    return ["- none supplied"];
+    return ["- none"];
   }
   return value.map((item) => {
     if (typeof item === "string") {
-      return `- ${item}`;
+      return `- ${cleanReaderFacingText(item)}`;
     }
     if (item && typeof item === "object") {
       const id = typeof item.id === "string" ? `\`${item.id}\`` : null;
-      const summary = firstNonEmptyString(item.assertion, item.summary, item.question);
+      const summary = cleanReaderFacingText(firstNonEmptyString(item.assertion, item.summary, item.question));
       if (id && summary) {
         return `- ${id}: ${summary}`;
       }
       if (summary) {
         return `- ${summary}`;
       }
-      return `- ${JSON.stringify(item)}`;
+      return `- ${cleanReaderFacingText(JSON.stringify(item))}`;
     }
-    return `- ${String(item)}`;
+    return `- ${cleanReaderFacingText(item)}`;
   });
 }
 
@@ -235,7 +242,7 @@ function formatFieldSchemaSection(title, value) {
     const name = firstNonEmptyString(field.name) ?? "unknown";
     const type = firstNonEmptyString(field.type);
     const required = typeof field.required === "boolean" ? field.required : null;
-    const description = firstNonEmptyString(field.description);
+    const description = cleanReaderFacingText(firstNonEmptyString(field.description));
     const parts = [`\`${name}\``];
     if (type) {
       parts.push(`type=\`${type}\``);
@@ -283,7 +290,7 @@ function formatFlexibleSection(title, value) {
     return [];
   }
   if (typeof value === "string") {
-    return [`## ${title}`, "", value, ""];
+    return [`## ${title}`, "", cleanReaderFacingText(value), ""];
   }
   if (Array.isArray(value)) {
     if (value.length === 0) {
@@ -292,26 +299,26 @@ function formatFlexibleSection(title, value) {
     const lines = [`## ${title}`, ""];
     for (const item of value) {
       if (typeof item === "string") {
-        lines.push(`- ${item}`);
+        lines.push(`- ${cleanReaderFacingText(item)}`);
         continue;
       }
       if (item && typeof item === "object") {
-        const summary = firstNonEmptyString(
+        const summary = cleanReaderFacingText(firstNonEmptyString(
           item.summary,
           item.problem,
           item.question,
           item.title,
           item.name,
-        );
+        ));
         if (summary) {
           lines.push(`- ${summary}`);
         } else {
-          lines.push(`- ${JSON.stringify(item)}`);
+          lines.push(`- ${cleanReaderFacingText(JSON.stringify(item))}`);
         }
         const details = [
-          firstNonEmptyString(item.why),
-          firstNonEmptyString(item.relevance),
-          firstNonEmptyString(item.rationale),
+          cleanReaderFacingText(firstNonEmptyString(item.why)),
+          cleanReaderFacingText(firstNonEmptyString(item.relevance)),
+          cleanReaderFacingText(firstNonEmptyString(item.rationale)),
         ].filter(Boolean);
         if (details.length > 0) {
           lines.push(`  ${details.join(" · ")}`);
@@ -322,7 +329,7 @@ function formatFlexibleSection(title, value) {
         }
         continue;
       }
-      lines.push(`- ${String(item)}`);
+      lines.push(`- ${cleanReaderFacingText(item)}`);
     }
     lines.push("");
     return lines;
@@ -330,7 +337,7 @@ function formatFlexibleSection(title, value) {
   if (typeof value === "object") {
     return formatNamedObjectSection(title, value);
   }
-  return [`## ${title}`, "", String(value), ""];
+  return [`## ${title}`, "", cleanReaderFacingText(value), ""];
 }
 
 function formatCatalogFitSection(value) {
@@ -369,16 +376,16 @@ function formatFindingsSection(findings) {
   const lines = ["## Findings", ""];
   for (const finding of findings) {
     if (!finding || typeof finding !== "object") {
-      lines.push(`- ${String(finding)}`);
+      lines.push(`- ${cleanReaderFacingText(finding)}`);
       continue;
     }
-    const claim = firstNonEmptyString(finding.claim) ?? JSON.stringify(finding);
+    const claim = cleanReaderFacingText(firstNonEmptyString(finding.claim) ?? JSON.stringify(finding));
     lines.push(`- ${claim}`);
-    const source = firstNonEmptyString(finding.source);
+    const source = cleanReaderFacingText(firstNonEmptyString(finding.source));
     if (source) {
       lines.push(`  source: ${source}`);
     }
-    const relevance = firstNonEmptyString(finding.relevance);
+    const relevance = cleanReaderFacingText(firstNonEmptyString(finding.relevance));
     if (relevance) {
       lines.push(`  relevance: ${relevance}`);
     }
@@ -399,12 +406,12 @@ function formatRecommendedFlowSection(flow) {
   const lines = ["## Implementation Shape", ""];
   for (const item of flow) {
     if (!item || typeof item !== "object") {
-      lines.push(`- ${String(item)}`);
+      lines.push(`- ${cleanReaderFacingText(item)}`);
       continue;
     }
-    const step = firstNonEmptyString(item.step) ?? JSON.stringify(item);
+    const step = cleanReaderFacingText(firstNonEmptyString(item.step) ?? JSON.stringify(item));
     lines.push(`- ${step}`);
-    const details = firstNonEmptyString(item.details, item.basis);
+    const details = cleanReaderFacingText(firstNonEmptyString(item.details, item.basis));
     if (details) {
       lines.push(`  ${details}`);
     }
@@ -426,12 +433,12 @@ function formatExecutionShapeSection(plan) {
   const stages = Array.isArray(plan.stages) ? plan.stages : Array.isArray(plan.steps) ? plan.steps : [];
   for (const stage of stages) {
     if (typeof stage === "string") {
-      lines.push(`- ${stage}`);
+      lines.push(`- ${cleanReaderFacingText(stage)}`);
       continue;
     }
     if (stage && typeof stage === "object") {
-      const label = firstNonEmptyString(stage.name, stage.id, stage.step, stage.summary);
-      const details = firstNonEmptyString(stage.description, stage.details, stage.reason);
+      const label = cleanReaderFacingText(firstNonEmptyString(stage.name, stage.id, stage.step, stage.summary));
+      const details = cleanReaderFacingText(firstNonEmptyString(stage.description, stage.details, stage.reason));
       if (label && details) {
         lines.push(`- ${label}: ${details}`);
       } else if (label) {
@@ -455,15 +462,15 @@ function formatHarnessSection(fixtures) {
   const lines = ["## Harness", ""];
   for (const fixture of fixtures) {
     if (typeof fixture === "string") {
-      lines.push(`- ${fixture}`);
+      lines.push(`- ${cleanReaderFacingText(fixture)}`);
       continue;
     }
     if (!fixture || typeof fixture !== "object") {
-      lines.push(`- ${String(fixture)}`);
+      lines.push(`- ${cleanReaderFacingText(fixture)}`);
       continue;
     }
-    const name = firstNonEmptyString(fixture.name, fixture.id, fixture.case, fixture.title) ?? "fixture";
-    const summary = firstNonEmptyString(fixture.summary, fixture.description, fixture.expected, fixture.expect);
+    const name = cleanReaderFacingText(firstNonEmptyString(fixture.name, fixture.id, fixture.case, fixture.title)) ?? "fixture";
+    const summary = cleanReaderFacingText(firstNonEmptyString(fixture.summary, fixture.description, fixture.expected, fixture.expect));
     lines.push(summary ? `- ${name}: ${summary}` : `- ${name}`);
   }
   lines.push("");
@@ -494,12 +501,12 @@ function formatSourcesList(sources) {
   const lines = [];
   for (const source of sources) {
     if (!source || typeof source !== "object") {
-      lines.push(`- ${String(source)}`);
+      lines.push(`- ${cleanReaderFacingText(source)}`);
       continue;
     }
-    const title = firstNonEmptyString(source.title, source.reference) ?? JSON.stringify(source);
+    const title = cleanReaderFacingText(firstNonEmptyString(source.title, source.reference) ?? JSON.stringify(source));
     const locator = firstNonEmptyString(source.locator);
-    const details = firstNonEmptyString(source.notes, source.details);
+    const details = cleanReaderFacingText(firstNonEmptyString(source.notes, source.details));
     const parts = [title];
     if (locator) {
       parts.push(locator);
@@ -520,10 +527,10 @@ function formatRisksSection(risks) {
   const lines = ["## Risks", ""];
   for (const risk of risks) {
     if (!risk || typeof risk !== "object") {
-      lines.push(`- ${String(risk)}`);
+      lines.push(`- ${cleanReaderFacingText(risk)}`);
       continue;
     }
-    const summary = firstNonEmptyString(risk.risk) ?? JSON.stringify(risk);
+    const summary = cleanReaderFacingText(firstNonEmptyString(risk.risk) ?? JSON.stringify(risk));
     lines.push(`- ${summary}`);
     const meta = [
       firstNonEmptyString(risk.likelihood) ? `likelihood=${risk.likelihood}` : null,
@@ -532,7 +539,7 @@ function formatRisksSection(risks) {
     if (meta.length > 0) {
       lines.push(`  ${meta.join(" · ")}`);
     }
-    const mitigation = firstNonEmptyString(risk.mitigation);
+    const mitigation = cleanReaderFacingText(firstNonEmptyString(risk.mitigation));
     if (mitigation) {
       lines.push(`  mitigation: ${mitigation}`);
     }
@@ -553,6 +560,17 @@ function firstNonEmptyString(...values) {
 function collapseWhitespace(value) {
   return String(value ?? "")
     .replace(/\s+/g, " ")
+    .trim();
+}
+
+function cleanReaderFacingText(value) {
+  if (value == null) {
+    return null;
+  }
+  return String(value)
+    .replace(/\bprior\s+(?:machine|agent|model|llm|ai)\s+output\b/gi, "prior run artifacts")
+    .replace(/\b(?:machine|agent|model|llm|ai)\s+output\b/gi, "run output")
+    .replace(/\bthe\s+(?:machine|agent|model|llm|ai)\s+should\b/gi, "the skill should")
     .trim();
 }
 
@@ -601,7 +619,7 @@ function isSkillProposalPayload(value) {
 
 function formatInlineValue(value) {
   if (typeof value === "string") {
-    return value;
+    return cleanReaderFacingText(value);
   }
   if (typeof value === "boolean" || typeof value === "number") {
     return String(value);
@@ -633,17 +651,17 @@ function formatObjectFieldLines(key, raw) {
 
 function formatObjectSummary(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return String(value);
+    return cleanReaderFacingText(value);
   }
-  const label = firstNonEmptyString(
+  const label = cleanReaderFacingText(firstNonEmptyString(
     value.name,
     value.capability,
     value.option,
     value.id,
     value.kind,
     value.title,
-  );
-  const detail = firstNonEmptyString(
+  ));
+  const detail = cleanReaderFacingText(firstNonEmptyString(
     value.why,
     value.boundary,
     value.effect,
@@ -652,7 +670,7 @@ function formatObjectSummary(value) {
     value.description,
     value.rationale,
     value.mitigation,
-  );
+  ));
   if (label && detail) {
     return `${label}: ${detail}`;
   }
