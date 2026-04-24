@@ -1,5 +1,6 @@
 export default {
   name: "aster",
+  prettyUrls: "strip",
   repo: "https://github.com/runxhq/aster",
   editBranch: "main",
   editBasePath: "docs",
