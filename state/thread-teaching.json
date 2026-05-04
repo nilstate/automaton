@@ -1,8 +1,13 @@
 {
-  "generated_at": "2026-04-20T07:06:12.994Z",
+  "generated_at": "2026-05-04T04:51:07.668Z",
   "source": {
     "type": "github_search",
-    "marker": "aster:thread-teaching-record",
+    "queries": [
+      "aster:thread-teaching-record",
+      "Kind Summary",
+      "Applies To",
+      "Decision"
+    ],
     "repos": [
       "runxhq/aster",
       "runxhq/runx",
@@ -13,8 +18,445 @@
     ],
     "search_limit": 20
   },
-  "errors": [],
+  "errors": [
+    {
+      "repo": "vitejs/vite",
+      "message": "spawnSync gh ENOBUFS"
+    }
+  ],
   "records": [
+    {
+      "record_id": "runxhq-aster-issue-115-publish-authorization-2026-04-23t01-09-56z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/115",
+      "thread_kind": "issue",
+      "thread_number": 115,
+      "thread_title": "[skill] Propose decision-brief for one living work issue ledger",
+      "thread_url": "https://github.com/runxhq/aster/issues/115",
+      "thread_state": "open",
+      "status": "active",
+      "thread_teaching_record": {
+        "record_id": "runxhq-aster-issue-115-publish-authorization-2026-04-23t01-09-56z",
+        "kind": "publish_authorization",
+        "summary": "Dogfood short-form gate approval after parser cut.",
+        "recorded_by": "auscaster",
+        "target_repo": null,
+        "subject_locator": null,
+        "objective_fingerprint": null,
+        "expires_after": null,
+        "applies_to": [
+          "skill-lab.publish"
+        ],
+        "invariants": [],
+        "notes": [],
+        "labels": [],
+        "decisions": [
+          {
+            "gate_id": "skill-lab.publish",
+            "decision": "allow",
+            "reason": "refresh one draft PR from this same work ledger using the markerless approval form"
+          }
+        ],
+        "supersedes": [],
+        "repo": "runxhq/aster",
+        "thread_kind": "issue",
+        "thread_number": 115,
+        "source_type": "issue_comment",
+        "source_url": "https://github.com/runxhq/aster/issues/115#issuecomment-4301027925",
+        "author": "auscaster",
+        "author_association": "MEMBER",
+        "recorded_at": "2026-04-23T01:09:56Z",
+        "status": "active"
+      }
+    },
+    {
+      "record_id": "runxhq-aster-issue-115-publish-authorization-2026-04-22t15-36-27z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/115",
+      "thread_kind": "issue",
+      "thread_number": 115,
+      "thread_title": "[skill] Propose decision-brief for one living work issue ledger",
+      "thread_url": "https://github.com/runxhq/aster/issues/115",
+      "thread_state": "open",
+      "status": "active",
+      "thread_teaching_record": {
+        "record_id": "runxhq-aster-issue-115-publish-authorization-2026-04-22t15-36-27z",
+        "kind": "publish_authorization",
+        "summary": "The decision-brief proposal may refresh one draft PR from this work issue.",
+        "recorded_by": "auscaster",
+        "target_repo": "nilstate/aster",
+        "subject_locator": "nilstate/aster#issue/115",
+        "objective_fingerprint": null,
+        "expires_after": null,
+        "applies_to": [
+          "skill-lab.publish"
+        ],
+        "invariants": [],
+        "notes": [],
+        "labels": [],
+        "decisions": [
+          {
+            "gate_id": "skill-lab.publish",
+            "decision": "allow",
+            "reason": "the decision-brief proposal is approved to refresh one draft PR from this same work ledger"
+          }
+        ],
+        "supersedes": [],
+        "repo": "runxhq/aster",
+        "thread_kind": "issue",
+        "thread_number": 115,
+        "source_type": "issue_comment",
+        "source_url": "https://github.com/runxhq/aster/issues/115#issuecomment-4297620366",
+        "author": "auscaster",
+        "author_association": "MEMBER",
+        "recorded_at": "2026-04-22T15:36:27Z",
+        "status": "active"
+      }
+    },
+    {
+      "record_id": "runxhq-aster-issue-115-publish-authorization-2026-04-22t15-29-08z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/115",
+      "thread_kind": "issue",
+      "thread_number": 115,
+      "thread_title": "[skill] Propose decision-brief for one living work issue ledger",
+      "thread_url": "https://github.com/runxhq/aster/issues/115",
+      "thread_state": "open",
+      "status": "active",
+      "thread_teaching_record": {
+        "record_id": "runxhq-aster-issue-115-publish-authorization-2026-04-22t15-29-08z",
+        "kind": "publish_authorization",
+        "summary": "Trusted thread reply authorized skill-lab.publish=allow.",
+        "recorded_by": "auscaster",
+        "target_repo": null,
+        "subject_locator": null,
+        "objective_fingerprint": null,
+        "expires_after": null,
+        "applies_to": [
+          "skill-lab.publish"
+        ],
+        "invariants": [],
+        "notes": [],
+        "labels": [],
+        "decisions": [
+          {
+            "gate_id": "skill-lab.publish",
+            "decision": "allow",
+            "reason": "the decision-brief proposal is approved to refresh one draft PR from this same work ledger"
+          }
+        ],
+        "supersedes": [],
+        "repo": "runxhq/aster",
+        "thread_kind": "issue",
+        "thread_number": 115,
+        "source_type": "issue_comment",
+        "source_url": "https://github.com/runxhq/aster/issues/115#issuecomment-4297559905",
+        "author": "auscaster",
+        "author_association": "MEMBER",
+        "recorded_at": "2026-04-22T15:29:08Z",
+        "status": "active"
+      }
+    },
+    {
+      "record_id": "runxhq-aster-issue-113-lesson-2026-04-22t13-49-40z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/113",
+      "thread_kind": "issue",
+      "thread_number": 113,
+      "thread_title": "[skill] Propose issue-ledger-followup for amendment-aware work loops",
+      "thread_url": "https://github.com/runxhq/aster/issues/113",
+      "thread_state": "open",
+      "status": "active",
+      "thread_teaching_record": {
+        "record_id": "runxhq-aster-issue-113-lesson-2026-04-22t13-49-40z",
+        "kind": "lesson",
+        "summary": "The richer skill-lab issue-update surface is now deployed; rerun once more so the rolling machine comment carries proposal signal and refresh deltas.",
+        "recorded_by": "kam",
+        "target_repo": "nilstate/aster",
+        "subject_locator": "nilstate/aster#issue/113",
+        "objective_fingerprint": null,
+        "expires_after": null,
+        "applies_to": [],
+        "invariants": [],
+        "notes": [
+          "Keep the same issue-ledger objective and bounded handoff shape.",
+          "The success criterion for this refresh is: the rolling `runx skill lab` comment reports proposal identity, summary, and a short `Changed in this refresh` section, not just status."
+        ],
+        "labels": [],
+        "decisions": [],
+        "supersedes": [],
+        "repo": "runxhq/aster",
+        "thread_kind": "issue",
+        "thread_number": 113,
+        "source_type": "issue_comment",
+        "source_url": "https://github.com/runxhq/aster/issues/113#issuecomment-4296750843",
+        "author": "auscaster",
+        "author_association": "MEMBER",
+        "recorded_at": "2026-04-22T13:49:40Z",
+        "status": "active"
+      }
+    },
+    {
+      "record_id": "runxhq-aster-issue-113-lesson-2026-04-22t13-40-26z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/113",
+      "thread_kind": "issue",
+      "thread_number": 113,
+      "thread_title": "[skill] Propose issue-ledger-followup for amendment-aware work loops",
+      "thread_url": "https://github.com/runxhq/aster/issues/113",
+      "thread_state": "open",
+      "status": "active",
+      "thread_teaching_record": {
+        "record_id": "runxhq-aster-issue-113-lesson-2026-04-22t13-40-26z",
+        "kind": "lesson",
+        "summary": "The skill-lab request-output gating fix is now deployed; rerun once more and ensure the rolling issue status comment refreshes on success.",
+        "recorded_by": "kam",
+        "target_repo": "nilstate/aster",
+        "subject_locator": "nilstate/aster#issue/113",
+        "objective_fingerprint": null,
+        "expires_after": null,
+        "applies_to": [],
+        "invariants": [],
+        "notes": [
+          "The previous successful run surfaced the real proposal content in artifacts, but the rolling machine status comment stayed stuck on `run_failed` because `objective_present` never propagated.",
+          "Rerun the same issue ledger.",
+          "Keep the same substantive proposal payload.",
+          "The live success criterion for this refresh is: the rolling `runx skill lab` comment updates to a success state and points at the new workflow run."
+        ],
+        "labels": [],
+        "decisions": [],
+        "supersedes": [],
+        "repo": "runxhq/aster",
+        "thread_kind": "issue",
+        "thread_number": 113,
+        "source_type": "issue_comment",
+        "source_url": "https://github.com/runxhq/aster/issues/113#issuecomment-4296684262",
+        "author": "auscaster",
+        "author_association": "MEMBER",
+        "recorded_at": "2026-04-22T13:40:26Z",
+        "status": "active"
+      }
+    },
+    {
+      "record_id": "runxhq-aster-issue-113-lesson-2026-04-22t13-30-53z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/113",
+      "thread_kind": "issue",
+      "thread_number": 113,
+      "thread_title": "[skill] Propose issue-ledger-followup for amendment-aware work loops",
+      "thread_url": "https://github.com/runxhq/aster/issues/113",
+      "thread_state": "open",
+      "status": "active",
+      "thread_teaching_record": {
+        "record_id": "runxhq-aster-issue-113-lesson-2026-04-22t13-30-53z",
+        "kind": "lesson",
+        "summary": "The stale runx skill-path cutover is now deployed; rerun the same work issue ledger and surface the real proposal payload.",
+        "recorded_by": "kam",
+        "target_repo": "nilstate/aster",
+        "subject_locator": "nilstate/aster#issue/113",
+        "objective_fingerprint": null,
+        "expires_after": null,
+        "applies_to": [],
+        "invariants": [],
+        "notes": [
+          "The live workflow now points at `design-skill`, `request-triage`, and `issue-triage`, matching the current runx skill names on main.",
+          "Rerun the same ledger from this issue thread.",
+          "Keep the prior amendment requirements: surface the substantive proposal findings instead of the slug-only stub.",
+          "In the refreshed issue update, include a short `Changed in this refresh` section so the issue thread shows what the new run actually fixed."
+        ],
+        "labels": [],
+        "decisions": [],
+        "supersedes": [],
+        "repo": "runxhq/aster",
+        "thread_kind": "issue",
+        "thread_number": 113,
+        "source_type": "issue_comment",
+        "source_url": "https://github.com/runxhq/aster/issues/113#issuecomment-4296610259",
+        "author": "auscaster",
+        "author_association": "MEMBER",
+        "recorded_at": "2026-04-22T13:30:53Z",
+        "status": "active"
+      }
+    },
+    {
+      "record_id": "runxhq-aster-issue-113-lesson-2026-04-22t13-17-31z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/113",
+      "thread_kind": "issue",
+      "thread_number": 113,
+      "thread_title": "[skill] Propose issue-ledger-followup for amendment-aware work loops",
+      "thread_url": "https://github.com/runxhq/aster/issues/113",
+      "thread_state": "open",
+      "status": "active",
+      "thread_teaching_record": {
+        "record_id": "runxhq-aster-issue-113-lesson-2026-04-22t13-17-31z",
+        "kind": "lesson",
+        "summary": "The live skill-lab rerun is still surfacing a thin status stub even though the artifact contains a substantive proposal payload.",
+        "recorded_by": "kam",
+        "target_repo": "nilstate/aster",
+        "subject_locator": "nilstate/aster#issue/113",
+        "objective_fingerprint": null,
+        "expires_after": null,
+        "applies_to": [],
+        "invariants": [],
+        "notes": [
+          "I inspected workflow run 24759465675 and the generated promotion markdown still only surfaces `Summary: issue-ledger-followup`.",
+          "The same run's `result.json.execution.stdout` already contains substantive structured output: `skill_spec`, `execution_plan`, `harness_fixture`, and `acceptance_checks`.",
+          "On the next refresh, surface the actual proposal findings in the issue update and promotion draft instead of the slug-only summary.",
+          "At minimum, carry forward the concrete skill summary, the portable inputs (`subject_locator`, `subject_title`, `subject_body`, `subject_memory`, `outbox_entry`, `allowed_next_actions`, `trusted_amendment_rule`, `stop_before_publication`), the bounded chain steps (`read-issue-ledger`, `draft-followup-packet`, `assemble-handoff-packet`), and the thin-stub regression guard.",
+          "If the proposal materializer still cannot safely project those fields, say that plainly in the issue update as a materialization gap instead of implying the proposal was fully refreshed.",
+          "In the refreshed issue update, add a short `Changed in this refresh` section so we can verify the amendment-aware living-ledger loop end to end."
+        ],
+        "labels": [],
+        "decisions": [],
+        "supersedes": [],
+        "repo": "runxhq/aster",
+        "thread_kind": "issue",
+        "thread_number": 113,
+        "source_type": "issue_comment",
+        "source_url": "https://github.com/runxhq/aster/issues/113#issuecomment-4296520649",
+        "author": "auscaster",
+        "author_association": "MEMBER",
+        "recorded_at": "2026-04-22T13:17:31Z",
+        "status": "active"
+      }
+    },
+    {
+      "record_id": "runxhq-aster-issue-113-lesson-2026-04-22t04-00-58z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/113",
+      "thread_kind": "issue",
+      "thread_number": 113,
+      "thread_title": "[skill] Propose issue-ledger-followup for amendment-aware work loops",
+      "thread_url": "https://github.com/runxhq/aster/issues/113",
+      "thread_state": "open",
+      "status": "active",
+      "thread_teaching_record": {
+        "record_id": "runxhq-aster-issue-113-lesson-2026-04-22t04-00-58z",
+        "kind": "lesson",
+        "summary": "The live rerun proved the issue-ledger loop works, but the surfaced proposal collapsed to a thin stub even though the internal steps produced substantive findings.",
+        "recorded_by": "kam",
+        "target_repo": "nilstate/aster",
+        "subject_locator": "nilstate/aster#issue/113",
+        "objective_fingerprint": null,
+        "expires_after": null,
+        "applies_to": [],
+        "invariants": [],
+        "notes": [
+          "Keep the single-issue ledger model.",
+          "On the next refresh, surface the actual findings from this run instead of only the slug summary.",
+          "Carry forward the concrete design points already produced internally: portable subject memory plus subject_locator, one bounded next-action packet, stop-before-publish, and the open questions around trusted amendments, retrigger policy, packet-shape reuse, and publication surface.",
+          "If a repo-read follow-up is required to verify existing packet or schema reuse, say that plainly rather than implying the proposal is final.",
+          "In the refreshed issue update, call out exactly what changed because of this amendment comment so we can verify the living-ledger loop end to end."
+        ],
+        "labels": [],
+        "decisions": [],
+        "supersedes": [],
+        "repo": "runxhq/aster",
+        "thread_kind": "issue",
+        "thread_number": 113,
+        "source_type": "issue_comment",
+        "source_url": "https://github.com/runxhq/aster/issues/113#issuecomment-4293412119",
+        "author": "auscaster",
+        "author_association": "MEMBER",
+        "recorded_at": "2026-04-22T04:00:58Z",
+        "status": "active"
+      }
+    },
+    {
+      "record_id": "runxhq-aster-issue-110-publish-authorization-2026-04-21t12-30-59z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/110",
+      "thread_kind": "issue",
+      "thread_number": 110,
+      "thread_title": "[skill] Add a collaboration issue distillation skill",
+      "thread_url": "https://github.com/runxhq/aster/issues/110",
+      "thread_state": "open",
+      "status": "active",
+      "thread_teaching_record": {
+        "record_id": "runxhq-aster-issue-110-publish-authorization-2026-04-21t12-30-59z",
+        "kind": "publish_authorization",
+        "summary": "Refresh the single rolling skill-lab draft PR for this issue from the same work ledger.",
+        "recorded_by": "kam",
+        "target_repo": "nilstate/aster",
+        "subject_locator": "nilstate/aster#issue/110",
+        "objective_fingerprint": null,
+        "expires_after": null,
+        "applies_to": [
+          "skill-lab.publish"
+        ],
+        "invariants": [
+          "Refresh PR #111 only; do not open a second draft PR for this issue."
+        ],
+        "notes": [],
+        "labels": [],
+        "decisions": [
+          {
+            "gate_id": "skill-lab.publish",
+            "decision": "allow",
+            "reason": "refresh the existing rolling draft PR from the same issue ledger"
+          }
+        ],
+        "supersedes": [],
+        "repo": "runxhq/aster",
+        "thread_kind": "issue",
+        "thread_number": 110,
+        "source_type": "issue_comment",
+        "source_url": "https://github.com/runxhq/aster/issues/110#issuecomment-4288534647",
+        "author": "auscaster",
+        "author_association": "MEMBER",
+        "recorded_at": "2026-04-21T12:30:59Z",
+        "status": "active"
+      }
+    },
+    {
+      "record_id": "runxhq-aster-issue-104-publish-authorization-2026-04-20t11-00-05z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/104",
+      "thread_kind": "issue",
+      "thread_number": 104,
+      "thread_title": "[collaboration] authorize skill-upstream publication for sourcey/sourcey",
+      "thread_url": "https://github.com/runxhq/aster/issues/104",
+      "thread_state": "closed",
+      "status": "active",
+      "thread_teaching_record": {
+        "record_id": "runxhq-aster-issue-104-publish-authorization-2026-04-20t11-00-05z",
+        "kind": "publish_authorization",
+        "summary": "Publish a draft upstream SKILL.md PR describing sourcey operator workflows.",
+        "recorded_by": "auscaster",
+        "target_repo": "sourcey/sourcey",
+        "subject_locator": "sourcey/sourcey",
+        "objective_fingerprint": null,
+        "expires_after": null,
+        "applies_to": [
+          "skill-upstream.publish"
+        ],
+        "invariants": [
+          "Keep the contribution bounded, additive only, and non-marketing."
+        ],
+        "notes": [
+          "Happy-path dogfood target 1. SKILL.md should cover install, build, test, and publish flow grounded in package.json scripts and the release workflow. Part of dogfood-skill-chain-approval-gates spec."
+        ],
+        "labels": [],
+        "decisions": [
+          {
+            "gate_id": "skill-upstream.publish",
+            "decision": "allow",
+            "reason": "bounded draft contribution is approved for sourcey/sourcey"
+          }
+        ],
+        "supersedes": [],
+        "repo": "runxhq/aster",
+        "thread_kind": "issue",
+        "thread_number": 104,
+        "source_type": "issue_body",
+        "source_url": "https://github.com/runxhq/aster/issues/104",
+        "author": "auscaster",
+        "author_association": "MEMBER",
+        "recorded_at": "2026-04-20T11:00:05Z",
+        "status": "active"
+      }
+    },
     {
       "record_id": "runxhq-aster-issue-54-publish-authorization-2026-04-20t04-44-06z",
       "repo": "runxhq/aster",
@@ -30,8 +472,8 @@
         "kind": "publish_authorization",
         "summary": "One bounded docs PR may be published for the live thread-teaching gate test.",
         "recorded_by": "kam",
-        "target_repo": "runxhq/aster",
-        "subject_locator": "runxhq/aster",
+        "target_repo": "nilstate/aster",
+        "subject_locator": "nilstate/aster",
         "objective_fingerprint": null,
         "expires_after": null,
         "applies_to": [
@@ -62,12 +504,408 @@
         "recorded_at": "2026-04-20T04:44:06Z",
         "status": "active"
       }
+    },
+    {
+      "record_id": "runxhq-aster-issue-4-approval-2026-04-20t02-16-57z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/4",
+      "thread_kind": "issue",
+      "thread_number": 4,
+      "thread_title": "Clarify live PR triage behavior in docs",
+      "thread_url": "https://github.com/runxhq/aster/issues/4",
+      "thread_state": "open",
+      "status": "expired",
+      "thread_teaching_record": {
+        "record_id": "runxhq-aster-issue-4-approval-2026-04-20t02-16-57z",
+        "kind": "approval",
+        "summary": "<!-- aster:approval-context --> Rationale: Approved to continue one bounded docs-only issue-triage run for this issue. Approved By: Kam",
+        "recorded_by": "auscaster",
+        "target_repo": null,
+        "subject_locator": null,
+        "objective_fingerprint": "21e360bc15136f50",
+        "expires_after": "2026-04-27T00:00:00Z",
+        "applies_to": [
+          "issue-triage.*"
+        ],
+        "invariants": [
+          "Keep the work docs-only.",
+          "Keep the work inside nilstate/aster.",
+          "No unrelated repo mutations."
+        ],
+        "notes": [
+          "Prefer a single bounded PR if the lane escalates past triage."
+        ],
+        "labels": [],
+        "decisions": [],
+        "supersedes": [],
+        "repo": "runxhq/aster",
+        "thread_kind": "issue",
+        "thread_number": 4,
+        "source_type": "issue_comment",
+        "source_url": "https://github.com/runxhq/aster/issues/4#issuecomment-4277456518",
+        "author": "auscaster",
+        "author_association": "MEMBER",
+        "recorded_at": "2026-04-20T02:16:57Z",
+        "status": "expired"
+      }
     }
   ],
   "teaching_rows": [
     {
       "kind": "runx.aster-thread-teaching-row.v1",
-      "generated_at": "2026-04-20T07:06:12.994Z",
+      "generated_at": "2026-05-04T04:51:07.668Z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/115",
+      "thread_kind": "issue",
+      "thread_number": 115,
+      "thread_title": "[skill] Propose decision-brief for one living work issue ledger",
+      "thread_url": "https://github.com/runxhq/aster/issues/115",
+      "thread_state": "open",
+      "record_id": "runxhq-aster-issue-115-publish-authorization-2026-04-23t01-09-56z",
+      "record_kind": "publish_authorization",
+      "status": "active",
+      "recorded_at": "2026-04-23T01:09:56Z",
+      "recorded_by": "auscaster",
+      "source_type": "issue_comment",
+      "source_url": "https://github.com/runxhq/aster/issues/115#issuecomment-4301027925",
+      "target_repo": null,
+      "subject_locator": null,
+      "objective_fingerprint": null,
+      "summary": "Dogfood short-form gate approval after parser cut.",
+      "applies_to": [
+        "skill-lab.publish"
+      ],
+      "labels": [],
+      "invariants": [],
+      "notes": [],
+      "decisions": [
+        {
+          "gate_id": "skill-lab.publish",
+          "decision": "allow",
+          "reason": "refresh one draft PR from this same work ledger using the markerless approval form"
+        }
+      ],
+      "supersedes": []
+    },
+    {
+      "kind": "runx.aster-thread-teaching-row.v1",
+      "generated_at": "2026-05-04T04:51:07.668Z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/115",
+      "thread_kind": "issue",
+      "thread_number": 115,
+      "thread_title": "[skill] Propose decision-brief for one living work issue ledger",
+      "thread_url": "https://github.com/runxhq/aster/issues/115",
+      "thread_state": "open",
+      "record_id": "runxhq-aster-issue-115-publish-authorization-2026-04-22t15-36-27z",
+      "record_kind": "publish_authorization",
+      "status": "active",
+      "recorded_at": "2026-04-22T15:36:27Z",
+      "recorded_by": "auscaster",
+      "source_type": "issue_comment",
+      "source_url": "https://github.com/runxhq/aster/issues/115#issuecomment-4297620366",
+      "target_repo": "nilstate/aster",
+      "subject_locator": "nilstate/aster#issue/115",
+      "objective_fingerprint": null,
+      "summary": "The decision-brief proposal may refresh one draft PR from this work issue.",
+      "applies_to": [
+        "skill-lab.publish"
+      ],
+      "labels": [],
+      "invariants": [],
+      "notes": [],
+      "decisions": [
+        {
+          "gate_id": "skill-lab.publish",
+          "decision": "allow",
+          "reason": "the decision-brief proposal is approved to refresh one draft PR from this same work ledger"
+        }
+      ],
+      "supersedes": []
+    },
+    {
+      "kind": "runx.aster-thread-teaching-row.v1",
+      "generated_at": "2026-05-04T04:51:07.668Z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/115",
+      "thread_kind": "issue",
+      "thread_number": 115,
+      "thread_title": "[skill] Propose decision-brief for one living work issue ledger",
+      "thread_url": "https://github.com/runxhq/aster/issues/115",
+      "thread_state": "open",
+      "record_id": "runxhq-aster-issue-115-publish-authorization-2026-04-22t15-29-08z",
+      "record_kind": "publish_authorization",
+      "status": "active",
+      "recorded_at": "2026-04-22T15:29:08Z",
+      "recorded_by": "auscaster",
+      "source_type": "issue_comment",
+      "source_url": "https://github.com/runxhq/aster/issues/115#issuecomment-4297559905",
+      "target_repo": null,
+      "subject_locator": null,
+      "objective_fingerprint": null,
+      "summary": "Trusted thread reply authorized skill-lab.publish=allow.",
+      "applies_to": [
+        "skill-lab.publish"
+      ],
+      "labels": [],
+      "invariants": [],
+      "notes": [],
+      "decisions": [
+        {
+          "gate_id": "skill-lab.publish",
+          "decision": "allow",
+          "reason": "the decision-brief proposal is approved to refresh one draft PR from this same work ledger"
+        }
+      ],
+      "supersedes": []
+    },
+    {
+      "kind": "runx.aster-thread-teaching-row.v1",
+      "generated_at": "2026-05-04T04:51:07.668Z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/113",
+      "thread_kind": "issue",
+      "thread_number": 113,
+      "thread_title": "[skill] Propose issue-ledger-followup for amendment-aware work loops",
+      "thread_url": "https://github.com/runxhq/aster/issues/113",
+      "thread_state": "open",
+      "record_id": "runxhq-aster-issue-113-lesson-2026-04-22t13-49-40z",
+      "record_kind": "lesson",
+      "status": "active",
+      "recorded_at": "2026-04-22T13:49:40Z",
+      "recorded_by": "kam",
+      "source_type": "issue_comment",
+      "source_url": "https://github.com/runxhq/aster/issues/113#issuecomment-4296750843",
+      "target_repo": "nilstate/aster",
+      "subject_locator": "nilstate/aster#issue/113",
+      "objective_fingerprint": null,
+      "summary": "The richer skill-lab issue-update surface is now deployed; rerun once more so the rolling machine comment carries proposal signal and refresh deltas.",
+      "applies_to": [],
+      "labels": [],
+      "invariants": [],
+      "notes": [
+        "Keep the same issue-ledger objective and bounded handoff shape.",
+        "The success criterion for this refresh is: the rolling `runx skill lab` comment reports proposal identity, summary, and a short `Changed in this refresh` section, not just status."
+      ],
+      "decisions": [],
+      "supersedes": []
+    },
+    {
+      "kind": "runx.aster-thread-teaching-row.v1",
+      "generated_at": "2026-05-04T04:51:07.668Z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/113",
+      "thread_kind": "issue",
+      "thread_number": 113,
+      "thread_title": "[skill] Propose issue-ledger-followup for amendment-aware work loops",
+      "thread_url": "https://github.com/runxhq/aster/issues/113",
+      "thread_state": "open",
+      "record_id": "runxhq-aster-issue-113-lesson-2026-04-22t13-40-26z",
+      "record_kind": "lesson",
+      "status": "active",
+      "recorded_at": "2026-04-22T13:40:26Z",
+      "recorded_by": "kam",
+      "source_type": "issue_comment",
+      "source_url": "https://github.com/runxhq/aster/issues/113#issuecomment-4296684262",
+      "target_repo": "nilstate/aster",
+      "subject_locator": "nilstate/aster#issue/113",
+      "objective_fingerprint": null,
+      "summary": "The skill-lab request-output gating fix is now deployed; rerun once more and ensure the rolling issue status comment refreshes on success.",
+      "applies_to": [],
+      "labels": [],
+      "invariants": [],
+      "notes": [
+        "The previous successful run surfaced the real proposal content in artifacts, but the rolling machine status comment stayed stuck on `run_failed` because `objective_present` never propagated.",
+        "Rerun the same issue ledger.",
+        "Keep the same substantive proposal payload.",
+        "The live success criterion for this refresh is: the rolling `runx skill lab` comment updates to a success state and points at the new workflow run."
+      ],
+      "decisions": [],
+      "supersedes": []
+    },
+    {
+      "kind": "runx.aster-thread-teaching-row.v1",
+      "generated_at": "2026-05-04T04:51:07.668Z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/113",
+      "thread_kind": "issue",
+      "thread_number": 113,
+      "thread_title": "[skill] Propose issue-ledger-followup for amendment-aware work loops",
+      "thread_url": "https://github.com/runxhq/aster/issues/113",
+      "thread_state": "open",
+      "record_id": "runxhq-aster-issue-113-lesson-2026-04-22t13-30-53z",
+      "record_kind": "lesson",
+      "status": "active",
+      "recorded_at": "2026-04-22T13:30:53Z",
+      "recorded_by": "kam",
+      "source_type": "issue_comment",
+      "source_url": "https://github.com/runxhq/aster/issues/113#issuecomment-4296610259",
+      "target_repo": "nilstate/aster",
+      "subject_locator": "nilstate/aster#issue/113",
+      "objective_fingerprint": null,
+      "summary": "The stale runx skill-path cutover is now deployed; rerun the same work issue ledger and surface the real proposal payload.",
+      "applies_to": [],
+      "labels": [],
+      "invariants": [],
+      "notes": [
+        "The live workflow now points at `design-skill`, `request-triage`, and `issue-triage`, matching the current runx skill names on main.",
+        "Rerun the same ledger from this issue thread.",
+        "Keep the prior amendment requirements: surface the substantive proposal findings instead of the slug-only stub.",
+        "In the refreshed issue update, include a short `Changed in this refresh` section so the issue thread shows what the new run actually fixed."
+      ],
+      "decisions": [],
+      "supersedes": []
+    },
+    {
+      "kind": "runx.aster-thread-teaching-row.v1",
+      "generated_at": "2026-05-04T04:51:07.668Z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/113",
+      "thread_kind": "issue",
+      "thread_number": 113,
+      "thread_title": "[skill] Propose issue-ledger-followup for amendment-aware work loops",
+      "thread_url": "https://github.com/runxhq/aster/issues/113",
+      "thread_state": "open",
+      "record_id": "runxhq-aster-issue-113-lesson-2026-04-22t13-17-31z",
+      "record_kind": "lesson",
+      "status": "active",
+      "recorded_at": "2026-04-22T13:17:31Z",
+      "recorded_by": "kam",
+      "source_type": "issue_comment",
+      "source_url": "https://github.com/runxhq/aster/issues/113#issuecomment-4296520649",
+      "target_repo": "nilstate/aster",
+      "subject_locator": "nilstate/aster#issue/113",
+      "objective_fingerprint": null,
+      "summary": "The live skill-lab rerun is still surfacing a thin status stub even though the artifact contains a substantive proposal payload.",
+      "applies_to": [],
+      "labels": [],
+      "invariants": [],
+      "notes": [
+        "I inspected workflow run 24759465675 and the generated promotion markdown still only surfaces `Summary: issue-ledger-followup`.",
+        "The same run's `result.json.execution.stdout` already contains substantive structured output: `skill_spec`, `execution_plan`, `harness_fixture`, and `acceptance_checks`.",
+        "On the next refresh, surface the actual proposal findings in the issue update and promotion draft instead of the slug-only summary.",
+        "At minimum, carry forward the concrete skill summary, the portable inputs (`subject_locator`, `subject_title`, `subject_body`, `subject_memory`, `outbox_entry`, `allowed_next_actions`, `trusted_amendment_rule`, `stop_before_publication`), the bounded chain steps (`read-issue-ledger`, `draft-followup-packet`, `assemble-handoff-packet`), and the thin-stub regression guard.",
+        "If the proposal materializer still cannot safely project those fields, say that plainly in the issue update as a materialization gap instead of implying the proposal was fully refreshed.",
+        "In the refreshed issue update, add a short `Changed in this refresh` section so we can verify the amendment-aware living-ledger loop end to end."
+      ],
+      "decisions": [],
+      "supersedes": []
+    },
+    {
+      "kind": "runx.aster-thread-teaching-row.v1",
+      "generated_at": "2026-05-04T04:51:07.668Z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/113",
+      "thread_kind": "issue",
+      "thread_number": 113,
+      "thread_title": "[skill] Propose issue-ledger-followup for amendment-aware work loops",
+      "thread_url": "https://github.com/runxhq/aster/issues/113",
+      "thread_state": "open",
+      "record_id": "runxhq-aster-issue-113-lesson-2026-04-22t04-00-58z",
+      "record_kind": "lesson",
+      "status": "active",
+      "recorded_at": "2026-04-22T04:00:58Z",
+      "recorded_by": "kam",
+      "source_type": "issue_comment",
+      "source_url": "https://github.com/runxhq/aster/issues/113#issuecomment-4293412119",
+      "target_repo": "nilstate/aster",
+      "subject_locator": "nilstate/aster#issue/113",
+      "objective_fingerprint": null,
+      "summary": "The live rerun proved the issue-ledger loop works, but the surfaced proposal collapsed to a thin stub even though the internal steps produced substantive findings.",
+      "applies_to": [],
+      "labels": [],
+      "invariants": [],
+      "notes": [
+        "Keep the single-issue ledger model.",
+        "On the next refresh, surface the actual findings from this run instead of only the slug summary.",
+        "Carry forward the concrete design points already produced internally: portable subject memory plus subject_locator, one bounded next-action packet, stop-before-publish, and the open questions around trusted amendments, retrigger policy, packet-shape reuse, and publication surface.",
+        "If a repo-read follow-up is required to verify existing packet or schema reuse, say that plainly rather than implying the proposal is final.",
+        "In the refreshed issue update, call out exactly what changed because of this amendment comment so we can verify the living-ledger loop end to end."
+      ],
+      "decisions": [],
+      "supersedes": []
+    },
+    {
+      "kind": "runx.aster-thread-teaching-row.v1",
+      "generated_at": "2026-05-04T04:51:07.668Z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/110",
+      "thread_kind": "issue",
+      "thread_number": 110,
+      "thread_title": "[skill] Add a collaboration issue distillation skill",
+      "thread_url": "https://github.com/runxhq/aster/issues/110",
+      "thread_state": "open",
+      "record_id": "runxhq-aster-issue-110-publish-authorization-2026-04-21t12-30-59z",
+      "record_kind": "publish_authorization",
+      "status": "active",
+      "recorded_at": "2026-04-21T12:30:59Z",
+      "recorded_by": "kam",
+      "source_type": "issue_comment",
+      "source_url": "https://github.com/runxhq/aster/issues/110#issuecomment-4288534647",
+      "target_repo": "nilstate/aster",
+      "subject_locator": "nilstate/aster#issue/110",
+      "objective_fingerprint": null,
+      "summary": "Refresh the single rolling skill-lab draft PR for this issue from the same work ledger.",
+      "applies_to": [
+        "skill-lab.publish"
+      ],
+      "labels": [],
+      "invariants": [
+        "Refresh PR #111 only; do not open a second draft PR for this issue."
+      ],
+      "notes": [],
+      "decisions": [
+        {
+          "gate_id": "skill-lab.publish",
+          "decision": "allow",
+          "reason": "refresh the existing rolling draft PR from the same issue ledger"
+        }
+      ],
+      "supersedes": []
+    },
+    {
+      "kind": "runx.aster-thread-teaching-row.v1",
+      "generated_at": "2026-05-04T04:51:07.668Z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/104",
+      "thread_kind": "issue",
+      "thread_number": 104,
+      "thread_title": "[collaboration] authorize skill-upstream publication for sourcey/sourcey",
+      "thread_url": "https://github.com/runxhq/aster/issues/104",
+      "thread_state": "closed",
+      "record_id": "runxhq-aster-issue-104-publish-authorization-2026-04-20t11-00-05z",
+      "record_kind": "publish_authorization",
+      "status": "active",
+      "recorded_at": "2026-04-20T11:00:05Z",
+      "recorded_by": "auscaster",
+      "source_type": "issue_body",
+      "source_url": "https://github.com/runxhq/aster/issues/104",
+      "target_repo": "sourcey/sourcey",
+      "subject_locator": "sourcey/sourcey",
+      "objective_fingerprint": null,
+      "summary": "Publish a draft upstream SKILL.md PR describing sourcey operator workflows.",
+      "applies_to": [
+        "skill-upstream.publish"
+      ],
+      "labels": [],
+      "invariants": [
+        "Keep the contribution bounded, additive only, and non-marketing."
+      ],
+      "notes": [
+        "Happy-path dogfood target 1. SKILL.md should cover install, build, test, and publish flow grounded in package.json scripts and the release workflow. Part of dogfood-skill-chain-approval-gates spec."
+      ],
+      "decisions": [
+        {
+          "gate_id": "skill-upstream.publish",
+          "decision": "allow",
+          "reason": "bounded draft contribution is approved for sourcey/sourcey"
+        }
+      ],
+      "supersedes": []
+    },
+    {
+      "kind": "runx.aster-thread-teaching-row.v1",
+      "generated_at": "2026-05-04T04:51:07.668Z",
       "repo": "runxhq/aster",
       "thread": "runxhq/aster#issue/54",
       "thread_kind": "issue",
@@ -82,8 +920,8 @@
       "recorded_by": "kam",
       "source_type": "issue_body",
       "source_url": "https://github.com/runxhq/aster/issues/54",
-      "target_repo": "runxhq/aster",
-      "subject_locator": "runxhq/aster",
+      "target_repo": "nilstate/aster",
+      "subject_locator": "nilstate/aster",
       "objective_fingerprint": null,
       "summary": "One bounded docs PR may be published for the live thread-teaching gate test.",
       "applies_to": [
@@ -103,6 +941,42 @@
           "reason": "bounded draft publication is approved"
         }
       ],
+      "supersedes": []
+    },
+    {
+      "kind": "runx.aster-thread-teaching-row.v1",
+      "generated_at": "2026-05-04T04:51:07.668Z",
+      "repo": "runxhq/aster",
+      "thread": "runxhq/aster#issue/4",
+      "thread_kind": "issue",
+      "thread_number": 4,
+      "thread_title": "Clarify live PR triage behavior in docs",
+      "thread_url": "https://github.com/runxhq/aster/issues/4",
+      "thread_state": "open",
+      "record_id": "runxhq-aster-issue-4-approval-2026-04-20t02-16-57z",
+      "record_kind": "approval",
+      "status": "expired",
+      "recorded_at": "2026-04-20T02:16:57Z",
+      "recorded_by": "auscaster",
+      "source_type": "issue_comment",
+      "source_url": "https://github.com/runxhq/aster/issues/4#issuecomment-4277456518",
+      "target_repo": null,
+      "subject_locator": null,
+      "objective_fingerprint": "21e360bc15136f50",
+      "summary": "<!-- aster:approval-context --> Rationale: Approved to continue one bounded docs-only issue-triage run for this issue. Approved By: Kam",
+      "applies_to": [
+        "issue-triage.*"
+      ],
+      "labels": [],
+      "invariants": [
+        "Keep the work docs-only.",
+        "Keep the work inside nilstate/aster.",
+        "No unrelated repo mutations."
+      ],
+      "notes": [
+        "Prefer a single bounded PR if the lane escalates past triage."
+      ],
+      "decisions": [],
       "supersedes": []
     }
   ]
